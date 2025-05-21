@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Personalidad Eneagrama</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="eneagram-test-wrapper">
+        <div class="container">
+            <h1>Test de Personalidad Eneagrama</h1>
+            
+            <div id="start-test-container" style="text-align: center; margin-bottom: 30px;">
+                <p class="intro-text">
+                    El Eneagrama es un sistema que describe nueve tipos de personalidad distintos y sus interrelaciones.
+                    Este test te ayudará a descubrir tu tipo de personalidad predominante según el Eneagrama.
+                </p>
+                <button id="start-test-btn">Empezar Test</button>
+            </div>
+            
+            <div id="alert-message" class="alert" style="display: none;"></div>
+            
+            <form id="quiz-form" style="display: none;">
+                <div id="quiz-container">
+                    <!-- Las preguntas de la página actual se generarán aquí -->
+                </div>
+                
+                <div id="pagination-controls" style="display: none;">
+                    <!-- Los botones Anterior/Siguiente se añadirán aquí por JS -->
+                </div>
+                
+                <button type="submit" id="submit-btn">Calcular Resultados</button>
+            </form>
+            
+            <div id="results-container" style="display: none;">
+                <h2>Tus Resultados</h2>
+                <div id="results-text"></div>
+                <div id="results-chart-container">
+                    <canvas id="results-chart"></canvas>
+                </div>
+                <div id="type-descriptions" class="type-descriptions">
+                    <h3>Descripción de los Tipos</h3>
+                    <div class="type-description" id="type-1">
+                        <h4>Tipo 1: El Perfeccionista</h4>
+                        <p>Personas éticas, dedicadas y confiables con un fuerte sentido personal de lo correcto e incorrecto. Son maestros, cruzados y defensores de cambio, siempre esforzándose por mejorar las cosas pero temiendo cometer errores.</p>
+                    </div>
+                    <div class="type-description" id="type-2">
+                        <h4>Tipo 2: El Ayudador</h4>
+                        <p>Personas empáticas, sinceras y cálidas. Son amistosos, generosos y abnegados, pero también pueden ser sentimentales, aduladores y personas que buscan complacer.</p>
+                    </div>
+                    <div class="type-description" id="type-3">
+                        <h4>Tipo 3: El Triunfador</h4>
+                        <p>Personas adaptables, sobresalientes y conscientes de su imagen. Son ambiciosos, competentes y energéticos, pero también pueden preocuparse demasiado por su estatus y apariencia.</p>
+                    </div>
+                    <div class="type-description" id="type-4">
+                        <h4>Tipo 4: El Individualista</h4>
+                        <p>Personas expresivas, dramáticas, ensimismadas y temperamentales. Son creativos, sensibles y reservados, pero también pueden ser malhumorados y autocompasivos.</p>
+                    </div>
+                    <div class="type-description" id="type-5">
+                        <h4>Tipo 5: El Investigador</h4>
+                        <p>Personas perceptivas, innovadoras, reservadas y aisladas. Son perspicaces, independientes y curiosos, pero pueden volverse desapegados y nihilistas.</p>
+                    </div>
+                    <div class="type-description" id="type-6">
+                        <h4>Tipo 6: El Leal</h4>
+                        <p>Personas comprometidas, orientadas a la seguridad y vigilantes. Son confiables, trabajadores y responsables, pero también pueden ser defensivos, evasivos y ansiosos.</p>
+                    </div>
+                    <div class="type-description" id="type-7">
+                        <h4>Tipo 7: El Entusiasta</h4>
+                        <p>Personas ocupadas, divertidas y espontáneas. Son versátiles, optimistas y productivos, pero también pueden dispersarse y ser escapistas.</p>
+                    </div>
+                    <div class="type-description" id="type-8">
+                        <h4>Tipo 8: El Desafiador</h4>
+                        <p>Personas poderosas, dominantes y seguras de sí mismas. Son protectores, decididos y asertivos, pero también pueden ser orgullosos y confrontacionales.</p>
+                    </div>
+                    <div class="type-description" id="type-9">
+                        <h4>Tipo 9: El Pacificador</h4>
+                        <p>Personas receptivas, tranquilas y complacientes. Son amables, modestos y pacíficos, pero también pueden ser demasiado dispuestos a seguir a otros para mantener la paz.</p>
+                    </div>
+                </div>
+                <div class="restart-container">
+                    <button id="restart-test-btn">Reiniciar Test</button>
+                </div>
+            </div>
+            
+            <footer>
+                <p>© 2025 Test de Eneagrama - Todos los derechos reservados</p>
+            </footer>
+        </div>
+    </div>
+    
+    <script src="js/script.js"></script>
+</body>
+</html>
