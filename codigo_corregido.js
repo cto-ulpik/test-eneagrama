@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { text: "¿Tengo un sexto sentido de donde reside el poder de un grupo?", type: 8 }, 
         { text: "¿Soy una persona agresiva, dogmática y auto asertiva?", type: 8 }, 
         { text: "¿Sé como hacer que se hagan las cosas?", type: 8 }, 
-        { text: "¿Me cuesta aceptar y expresar mi lado tierno, gentil, suave, "femenino"?", type: 8 }, 
+        { text: "¿Me cuesta aceptar y expresar mi lado tierno, gentil, suave, femenino?", type: 8 }, 
         { text: "¿La justicia e injusticia son puntos claves para mí?", type: 8 },
         { text: "¿Protejo a las personas que están bajo mi autoridad o jurisdicción?", type: 8 },
         { text: "¿Generalmente, no me atrae mucho la introspección o demasiado auto análisis?", type: 8 },
