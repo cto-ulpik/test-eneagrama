@@ -548,56 +548,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-   function showAlert(message) {
+         
+    function showAlert(message) {
         if (!alertMessageDiv) return;
         alertMessageDiv.textContent = message;
         alertMessageDiv.style.display = 'block';
         alertMessageDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-    
     function hideAlert() {
         if (!alertMessageDiv) return;
         alertMessageDiv.style.display = 'none';
     }
 
-    // Iniciar test
     if (startTestBtn) {
         startTestBtn.addEventListener('click', () => {
             initializeQuiz();
         });
     } else {
         console.warn("Botón 'start-test-btn' no encontrado. El test no se iniciará automáticamente.");
+        // No inicializar el quiz si no hay botón de inicio.
     }
 
-    // Reiniciar test
-    if (restartTestBtn) {
-        restartTestBtn.addEventListener('click', () => {
-            if (resultsContainer) {
-                resultsContainer.style.display = 'none';
-            }
-            if (startTestContainer) {
-                startTestContainer.style.display = 'block';
-            }
-            
-            // Mostrar todas las descripciones de tipos nuevamente (estarán ocultas hasta que se muestren resultados)
-            if (typeDescriptions) {
-                typeDescriptions.forEach(desc => {
-                    desc.style.display = 'none';
-                });
-            }
-            
-            currentPage = 1;
-            shuffledQuestions = [];
-            userResponses = [];
-            if (resultsChart) {
-                resultsChart.destroy();
-                resultsChart = null;
-            }
-        });
-    }
-
-    // Enviar formulario
     if (quizForm) {
         quizForm.addEventListener('submit', (event) => {
             event.preventDefault();
@@ -609,5 +580,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } else {
         console.error("Elemento quizForm no encontrado.");
-    }
+    }
 });
