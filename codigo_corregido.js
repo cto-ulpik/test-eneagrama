@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    const quizContainer = wrapper.querySelector('#quiz-container');
+     const quizContainer = wrapper.querySelector('#quiz-container');
     const quizForm = wrapper.querySelector('#quiz-form');
     const resultsTextDiv = wrapper.querySelector('#results-text');
     const resultsContainer = wrapper.querySelector('#results-container');
@@ -15,10 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitBtn = wrapper.querySelector('#submit-btn');
     const startTestContainer = wrapper.querySelector('#start-test-container');
     const startTestBtn = wrapper.querySelector('#start-test-btn');
-    // Definir typeDescriptions aquí para que esté disponible en todo el ámbito
     const typeDescriptions = wrapper.querySelectorAll('.type-description');
-    // Verificar si existe el botón de reinicio
-    const restartTestBtn = wrapper.querySelector('#restart-test-btn');
+    const restartTestBtn = wrapper.querySelector('#restart-test-btn');  // Corrección aquí
     let resultsChart = null;
 
 
@@ -570,34 +568,16 @@ document.addEventListener('DOMContentLoaded', () => {
         alertMessageDiv.style.display = 'none';
     }
 
-    // Iniciar test
-    if (startTestBtn) {
-        console.log("Botón de inicio encontrado, añadiendo evento click"); // Depuración
-        startTestBtn.addEventListener('click', function() {
-            console.log("Botón de inicio clickeado"); // Depuración
-            initializeQuiz();
-        });
-    } else {
-        console.warn("Botón 'start-test-btn' no encontrado. El test no se iniciará automáticamente.");
-    }
-
-    // Reiniciar test - Solo si existe el botón
-    if (restartTestBtn) {
+  
+if (restartTestBtn) {
         restartTestBtn.addEventListener('click', () => {
-            if (resultsContainer) {
-                resultsContainer.style.display = 'none';
-            }
-            if (startTestContainer) {
-                startTestContainer.style.display = 'block';
-            }
-            
-            // Mostrar todas las descripciones de tipos nuevamente (estarán ocultas hasta que se muestren resultados)
+            if (resultsContainer) resultsContainer.style.display = 'none';
+            if (startTestContainer) startTestContainer.style.display = 'block';
+
             if (typeDescriptions && typeDescriptions.length > 0) {
-                typeDescriptions.forEach(desc => {
-                    desc.style.display = 'none';
-                });
+                typeDescriptions.forEach(desc => desc.style.display = 'none');
             }
-            
+
             currentPage = 1;
             shuffledQuestions = [];
             userResponses = [];
@@ -606,6 +586,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultsChart = null;
             }
         });
+    } else {
+        console.warn("Botón #restart-test-btn no encontrado.");
+    }
+
+    // Evento para iniciar test
+    if (startTestBtn) {
+        startTestBtn.addEventListener('click', function() {
+            initializeQuiz();
+        });
+    } else {
+        console.warn("Botón 'start-test-btn' no encontrado. El test no se iniciará automáticamente.");
     }
 
     // Enviar formulario
@@ -621,20 +612,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.error("Elemento quizForm no encontrado.");
     }
-
-    // Verificar que todos los elementos necesarios estén presentes
-    console.log("Elementos del DOM:");
-    console.log("- quizContainer:", quizContainer ? "Encontrado" : "No encontrado");
-    console.log("- quizForm:", quizForm ? "Encontrado" : "No encontrado");
-    console.log("- resultsTextDiv:", resultsTextDiv ? "Encontrado" : "No encontrado");
-    console.log("- resultsContainer:", resultsContainer ? "Encontrado" : "No encontrado");
-    console.log("- alertMessageDiv:", alertMessageDiv ? "Encontrado" : "No encontrado");
-    console.log("- paginationControlsDiv:", paginationControlsDiv ? "Encontrado" : "No encontrado");
-    console.log("- submitBtn:", submitBtn ? "Encontrado" : "No encontrado");
-    console.log("- startTestContainer:", startTestContainer ? "Encontrado" : "No encontrado");
-    console.log("- startTestBtn:", startTestBtn ? "Encontrado" : "No encontrado");
-    console.log("- restartTestBtn:", restartTestBtn ? "Encontrado" : "No encontrado");
-    console.log("- typeDescriptions:", typeDescriptions ? `Encontrado (${typeDescriptions.length} elementos)` : "No encontrado");
 });
+
 
 
