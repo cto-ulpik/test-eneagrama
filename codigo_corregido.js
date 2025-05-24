@@ -15,7 +15,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitBtn = wrapper.querySelector('#submit-btn');
     const startTestContainer = wrapper.querySelector('#start-test-container');
     const startTestBtn = wrapper.querySelector('#start-test-btn');
+    // Definir typeDescriptions aquí para que esté disponible en todo el ámbito
+    const typeDescriptions = wrapper.querySelectorAll('.type-description');
+    // Verificar si existe el botón de reinicio
+    const restartTestBtn = wrapper.querySelector('#restart-test-btn');
     let resultsChart = null;
+
 
     const numTypes = 9;
 
@@ -244,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let shuffledQuestions = [];
     let userResponses = [];
 
-    const prevBtn = document.createElement('button');
+     const prevBtn = document.createElement('button');
     prevBtn.type = 'button'; prevBtn.id = 'prev-btn'; prevBtn.textContent = 'Anterior';
     const nextBtn = document.createElement('button');
     nextBtn.type = 'button'; nextBtn.id = 'next-btn'; nextBtn.textContent = 'Siguiente';
@@ -257,6 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initializeQuiz() {
+        console.log("Inicializando quiz..."); // Depuración
         if (!quizContainer || !submitBtn || !paginationControlsDiv || !quizForm) {
             console.error("Faltan elementos esenciales del quiz en el DOM.");
             return;
@@ -463,8 +469,9 @@ document.addEventListener('DOMContentLoaded', () => {
         paginationControlsDiv.style.display = 'none';
         submitBtn.style.display = 'none';
         quizForm.style.display = 'none';
-         // Ocultar todas las descripciones de tipos excepto la dominante
-        if (typeDescriptions) {
+        
+        // Ocultar todas las descripciones de tipos excepto la dominante
+        if (typeDescriptions && typeDescriptions.length > 0) {
             typeDescriptions.forEach(desc => {
                 desc.style.display = 'none';
             });
@@ -474,9 +481,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dominantTypeDesc) {
                 dominantTypeDesc.style.display = 'block';
                 dominantTypeDesc.scrollIntoView({ behavior: 'smooth' });
-            } else {
+            }
+        } else {
             console.warn("No se encontraron descripciones de tipos para mostrar/ocultar");
-        }
         }
     }
 
@@ -550,7 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-         
+
     function showAlert(message) {
         if (!alertMessageDiv) return;
         alertMessageDiv.textContent = message;
@@ -562,7 +569,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!alertMessageDiv) return;
         alertMessageDiv.style.display = 'none';
     }
-// Iniciar test
+
+    // Iniciar test
     if (startTestBtn) {
         console.log("Botón de inicio encontrado, añadiendo evento click"); // Depuración
         startTestBtn.addEventListener('click', function() {
@@ -573,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn("Botón 'start-test-btn' no encontrado. El test no se iniciará automáticamente.");
     }
 
-    // Reiniciar test
+    // Reiniciar test - Solo si existe el botón
     if (restartTestBtn) {
         restartTestBtn.addEventListener('click', () => {
             if (resultsContainer) {
@@ -629,4 +637,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("- typeDescriptions:", typeDescriptions ? `Encontrado (${typeDescriptions.length} elementos)` : "No encontrado");
 });
 
-   
+
