@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { text: "¿La mayoría de las personas no aprecian la verdadera belleza de la vida?", type: 4 },
         { text: "¿Siento una nostalgia casi compulsiva por mi pasado?", type: 4 },
         { text: "¿Trato de parecer sencillo y natural?", type: 4 },
-        { text: "Me encuentro oscilando entre altos y bajos. Estoy o eufórico o deprimido. No me siento con "vida" cuando estoy en equilibrio?", type: 4 },
+        { text: "Me encuentro oscilando entre altos y bajos. Estoy o eufórico o deprimido. No me siento con vida cuando estoy en equilibrio?", type: 4 },
         { text: "¿El arte y expresión artística son muy importantes para mí, como una forma de canalizar mis emociones?", type: 4 },
         
         // Tipo 5 ... (20 preguntas)
