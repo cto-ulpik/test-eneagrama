@@ -237,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const typeColors = ['#FFC3A0', '#FF6B6B', '#D2691E', '#6A0DAD', '#C3B1E1', '#5F9EA0', '#ADD8E6', '#90EE90', '#FFB6C1'];
     const typeLabels = Array.from({ length: numTypes }, (_, i) => `Tipo ${i + 1}`);
+    const grayColor = '#CCCCCC';
 
     let currentPage = 1;
     const questionsPerPage = 20; // O 20 si prefieres menos páginas con 180 preguntas
@@ -439,19 +440,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function displayResults(scores) {
         if (!resultsTextDiv || !resultsContainer || !paginationControlsDiv || !submitBtn || !quizForm) return;
+        
+        // Encontrar el tipo dominante (mayor puntaje)
+        const maxScore = Math.max(...scores);
+        const dominantTypeIndex = scores.indexOf(maxScore);
+        const dominantType = dominantTypeIndex + 1;
+        
+        // Limpiar y mostrar solo el resultado del tipo dominante
         resultsTextDiv.innerHTML = '';
-        scores.forEach((score, index) => {
-            resultsTextDiv.innerHTML += `<p>Puntaje del <strong>Tipo ${index + 1}</strong>: ${score}</p>`;
-        });
+        resultsTextDiv.innerHTML = `<p class="dominant-type">Tu tipo de personalidad según el Eneagrama es: <strong>Tipo ${dominantType}</strong></p>`;
+        
+        // Mostrar el contenedor de resultados
         resultsContainer.style.display = 'block';
-        drawChart(scores);
+        
+        // Dibujar el gráfico
+        drawChart(scores, dominantTypeIndex);
+        
+        // Desplazarse a los resultados
         resultsContainer.scrollIntoView({ behavior: 'smooth' });
+        
+        // Ocultar controles de paginación y formulario
         paginationControlsDiv.style.display = 'none';
         submitBtn.style.display = 'none';
         quizForm.style.display = 'none';
+         // Ocultar todas las descripciones de tipos excepto la dominante
+        if (typeDescriptions) {
+            typeDescriptions.forEach(desc => {
+                desc.style.display = 'none';
+            });
+            
+            // Mostrar solo la descripción del tipo dominante
+            const dominantTypeDesc = wrapper.querySelector(`#type-${dominantType}`);
+            if (dominantTypeDesc) {
+                dominantTypeDesc.style.display = 'block';
+                dominantTypeDesc.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
     }
 
-    function drawChart(scores) {
+    function drawChart(scores, dominantTypeIndex) {
         const chartCanvas = wrapper.querySelector('#results-chart');
         if (!chartCanvas) return;
         const chartCtx = chartCanvas.getContext('2d');
@@ -462,6 +489,10 @@ document.addEventListener('DOMContentLoaded', () => {
              questionsPerType = shuffledQuestions.filter(q => q.type === 1).length;
         }
         const maxScorePerType = questionsPerType * 5;
+        
+        // Crear array de colores donde solo el tipo dominante tiene color
+        const backgroundColors = Array(numTypes).fill(grayColor);
+        backgroundColors[dominantTypeIndex] = typeColors[dominantTypeIndex];
 
         // Configuración del gráfico circular (PolarArea)
         resultsChart = new Chart(chartCtx, {
@@ -469,9 +500,9 @@ document.addEventListener('DOMContentLoaded', () => {
             data: {
                 labels: typeLabels,
                 datasets: [{
-                    label: 'Puntajes por Tipo',
+                    label: 'Resultado',
                     data: scores,
-                    backgroundColor: typeColors,
+                    backgroundColor: backgroundColors,
                     borderColor: '#FFFFFF',
                     borderWidth: 1,
                     borderAlign: 'center'  // Alinea los bordes al centro para evitar sobreposiciones
@@ -499,24 +530,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 plugins: { 
                     legend: { 
-                        position: 'bottom',  // Coloca la leyenda debajo del gráfico
-                        labels: { 
-                            font: { size: 13 } 
-                        } 
+                        display: false  // Ocultar la leyenda ya que solo mostramos el tipo dominante
                     }, 
                     tooltip: { 
-                        callbacks: { 
-                            label: function(context) { 
-                                let label = context.label || ''; 
-                                if (label) { 
-                                    label += ': '; 
-                                } 
-                                if (context.parsed.r !== null) { 
-                                    label += context.parsed.r; 
-                                } 
-                                return label; 
-                            } 
-                        } 
+                        enabled: false  // Desactivar tooltips para no mostrar puntajes
                     } 
                 },
                 layout: {
@@ -532,26 +549,55 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function showAlert(message) {
+   function showAlert(message) {
         if (!alertMessageDiv) return;
         alertMessageDiv.textContent = message;
         alertMessageDiv.style.display = 'block';
         alertMessageDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+    
     function hideAlert() {
         if (!alertMessageDiv) return;
         alertMessageDiv.style.display = 'none';
     }
 
+    // Iniciar test
     if (startTestBtn) {
         startTestBtn.addEventListener('click', () => {
             initializeQuiz();
         });
     } else {
         console.warn("Botón 'start-test-btn' no encontrado. El test no se iniciará automáticamente.");
-        // No inicializar el quiz si no hay botón de inicio.
     }
 
+    // Reiniciar test
+    if (restartTestBtn) {
+        restartTestBtn.addEventListener('click', () => {
+            if (resultsContainer) {
+                resultsContainer.style.display = 'none';
+            }
+            if (startTestContainer) {
+                startTestContainer.style.display = 'block';
+            }
+            
+            // Mostrar todas las descripciones de tipos nuevamente (estarán ocultas hasta que se muestren resultados)
+            if (typeDescriptions) {
+                typeDescriptions.forEach(desc => {
+                    desc.style.display = 'none';
+                });
+            }
+            
+            currentPage = 1;
+            shuffledQuestions = [];
+            userResponses = [];
+            if (resultsChart) {
+                resultsChart.destroy();
+                resultsChart = null;
+            }
+        });
+    }
+
+    // Enviar formulario
     if (quizForm) {
         quizForm.addEventListener('submit', (event) => {
             event.preventDefault();
