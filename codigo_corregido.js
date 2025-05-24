@@ -212,26 +212,26 @@ document.addEventListener('DOMContentLoaded', () => {
         // Tipo 9 ... (20 preguntas)
         //14 35 40 56 61 77 98 102 204 205 206 226 263 265 
         //266 267 268 269 270 271 272 273 274 275 276 277 278 279 280 281 282 283 284 285                                                
-        { text: "14.	Dejo que otras personas tomen las decisiones", type: 9 }, 
-        { text: "35.	Estoy de acuerdo con lo que quieren los demás", type: 9 }, 
-        { text: "40.	Me gusta hacer las cosas como siempre las he hecho.", type: 9 }, 
-        { text: "56.	Prefiero seguir al grupo que esforzarme por conseguir lo que quiero.", type: 9 }, 
-        { text: "61.	No me gusta probar nuevos métodos o procedimientos.", type: 9 }, 
-        { text: "77.	Dejo que otras personas tomen la iniciativa", type: 9 }, 
-        { text: "98.	Otras personas tienen opiniones más fuertes que yo.", type: 9 },
-        { text: "102.	Soy una persona promedio con gustos y disgustos comunes.", type: 9 }, 
-        { text: "204.	¿Tengo un tono de voz suave y las personas a menudo me tienen que pedir que hable más alto?", type: 9 }, 
-        { text: "P10-T9: ...", type: 9 }, 
-        { text: "P11-T9: ...", type: 9 }, 
-        { text: "P12-T9: ...", type: 9 }, 
-        { text: "P13-T9: ...", type: 9 }, 
-        { text: "P14-T9: ...", type: 9 }, 
-        { text: "P15-T9: ...", type: 9 },
-        { text: "P15-T9: ...", type: 9 },
-        { text: "P15-T9: ...", type: 9 },
-        { text: "P15-T9: ...", type: 9 },
-        { text: "P15-T9: ...", type: 9 },
-        { text: "P15-T9: ...", type: 9 },
+        { text: "Dejo que otras personas tomen las decisiones", type: 9 }, 
+        { text: "Estoy de acuerdo con lo que quieren los demás", type: 9 }, 
+        { text: "Me gusta hacer las cosas como siempre las he hecho.", type: 9 }, 
+        { text: "Prefiero seguir al grupo que esforzarme por conseguir lo que quiero.", type: 9 }, 
+        { text: "No me gusta probar nuevos métodos o procedimientos.", type: 9 }, 
+        { text: "Dejo que otras personas tomen la iniciativa", type: 9 }, 
+        { text: "Otras personas tienen opiniones más fuertes que yo.", type: 9 },
+        { text: "Soy una persona promedio con gustos y disgustos comunes.", type: 9 }, 
+        { text: "¿Tengo un tono de voz suave y las personas a menudo me tienen que pedir que hable más alto?", type: 9 }, 
+        { text: "¿Tiendo a ser más una persona que recibe a una que dá?", type: 9 }, 
+        { text: "¿Básicamente, soy una persona común y corriente?", type: 9 }, 
+        { text: "¿Parezco sospechar menos de las personas y sus motivos que los demás?", type: 9 }, 
+        { text: "¿Me considero un buen trabajador?", type: 9 }, 
+        { text: "¿Pienso que los demás se crean sus propios problemas?", type: 9 }, 
+        { text: "¿La mayoría de las personas se agitan demasiado con las cosas?", type: 9 },
+        { text: "¿La mayoría de las cosas en la vida, no merecen que uno se inquiete?", type: 9 },
+        { text: "¿Casi siempre estoy tranquilo y calmado?", type: 9 },
+        { text: "¿Me gusta tener tiempo para no hacer nada?", type: 9 },
+        { text: "¿Soy una persona sumamente serena?", type: 9 },
+        { text: "¿No me acuerdo cuando fue la última vez que tuve problemas para dormir?", type: 9 },
     ];
     // Asegúrate de tener 20 preguntas por cada uno de los 9 tipos (total 180)
 
@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const typeLabels = Array.from({ length: numTypes }, (_, i) => `Tipo ${i + 1}`);
 
     let currentPage = 1;
-    const questionsPerPage = 15; // O 20 si prefieres menos páginas con 180 preguntas
+    const questionsPerPage = 20; // O 20 si prefieres menos páginas con 180 preguntas
     let shuffledQuestions = [];
     let userResponses = [];
 
