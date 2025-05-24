@@ -474,7 +474,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dominantTypeDesc) {
                 dominantTypeDesc.style.display = 'block';
                 dominantTypeDesc.scrollIntoView({ behavior: 'smooth' });
-            }
+            } else {
+            console.warn("No se encontraron descripciones de tipos para mostrar/ocultar");
+        }
         }
     }
 
@@ -560,10 +562,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!alertMessageDiv) return;
         alertMessageDiv.style.display = 'none';
     }
-
-    // Iniciar test
+// Iniciar test
     if (startTestBtn) {
-        startTestBtn.addEventListener('click', () => {
+        console.log("Botón de inicio encontrado, añadiendo evento click"); // Depuración
+        startTestBtn.addEventListener('click', function() {
+            console.log("Botón de inicio clickeado"); // Depuración
             initializeQuiz();
         });
     } else {
@@ -581,7 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             // Mostrar todas las descripciones de tipos nuevamente (estarán ocultas hasta que se muestren resultados)
-            if (typeDescriptions) {
+            if (typeDescriptions && typeDescriptions.length > 0) {
                 typeDescriptions.forEach(desc => {
                     desc.style.display = 'none';
                 });
@@ -610,4 +613,20 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.error("Elemento quizForm no encontrado.");
     }
+
+    // Verificar que todos los elementos necesarios estén presentes
+    console.log("Elementos del DOM:");
+    console.log("- quizContainer:", quizContainer ? "Encontrado" : "No encontrado");
+    console.log("- quizForm:", quizForm ? "Encontrado" : "No encontrado");
+    console.log("- resultsTextDiv:", resultsTextDiv ? "Encontrado" : "No encontrado");
+    console.log("- resultsContainer:", resultsContainer ? "Encontrado" : "No encontrado");
+    console.log("- alertMessageDiv:", alertMessageDiv ? "Encontrado" : "No encontrado");
+    console.log("- paginationControlsDiv:", paginationControlsDiv ? "Encontrado" : "No encontrado");
+    console.log("- submitBtn:", submitBtn ? "Encontrado" : "No encontrado");
+    console.log("- startTestContainer:", startTestContainer ? "Encontrado" : "No encontrado");
+    console.log("- startTestBtn:", startTestBtn ? "Encontrado" : "No encontrado");
+    console.log("- restartTestBtn:", restartTestBtn ? "Encontrado" : "No encontrado");
+    console.log("- typeDescriptions:", typeDescriptions ? `Encontrado (${typeDescriptions.length} elementos)` : "No encontrado");
 });
+
+   
