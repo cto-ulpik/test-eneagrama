@@ -6,6 +6,11 @@ body {
     background-color: #f0f2f5;
     color: #333;
     line-height: 1.6;
+    box-sizing: border-box;
+}
+
+* {
+    box-sizing: inherit;
 }
 
 #eneagram-test-wrapper .container {
@@ -80,11 +85,13 @@ body {
     flex-wrap: wrap;
     gap: 10px;
     justify-content: center;
+    align-items: center;
 }
 
 #eneagram-test-wrapper .options label {
     margin-right: 10px;
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
     cursor: pointer;
     padding: 8px 12px;
@@ -99,7 +106,7 @@ body {
 }
 
 #eneagram-test-wrapper .options input[type="radio"] {
-    margin-right: 8px;
+    margin-bottom: 4px;
 }
 
 #eneagram-test-wrapper .options input[type="radio"]:checked + span {
@@ -123,6 +130,7 @@ body {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    max-width: 100%;
 }
 
 #eneagram-test-wrapper #submit-btn:hover,
@@ -221,6 +229,9 @@ body {
     margin-bottom: 20px;
     padding: 10px;
     border-bottom: 1px solid #eee;
+    font-size: 1rem;
+    line-height: 1.5;
+    text-align: justify;
 }
 
 #eneagram-test-wrapper .type-description:last-child {
@@ -246,26 +257,39 @@ body {
         padding: 15px;
         margin: 10px;
     }
-    
+
     #eneagram-test-wrapper h1 {
         font-size: 1.6em;
     }
-    
+
     #eneagram-test-wrapper .options {
         flex-direction: column;
+        align-items: center;
     }
-    
+
     #eneagram-test-wrapper .options label {
         margin-right: 0;
-        margin-bottom: 5px;
+        margin-bottom: 8px;
+        width: 100%;
+        justify-content: center;
     }
-    
+
     #eneagram-test-wrapper #results-chart-container {
         min-height: 300px;
     }
+
+    #eneagram-test-wrapper .type-description {
+        font-size: 0.95rem;
+    }
+
+    button {
+        width: 100%;
+        font-size: 1rem;
+    }
 }
+
+/* Spinner de carga */
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
-
