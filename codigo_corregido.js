@@ -443,39 +443,32 @@ document.addEventListener('DOMContentLoaded', () => {
         return scores;
     }
 
-    function displayResults(scores) {
-        if (!resultsTextDiv || !resultsContainer || !paginationControlsDiv || !submitBtn || !quizForm) return;
-        
-        // Encontrar el tipo dominante (mayor puntaje)
+   function displayResults(scores) {
+    if (!resultsTextDiv || !resultsContainer || !paginationControlsDiv || !submitBtn || !quizForm) return;
+
+    const loadingSpinner = wrapper.querySelector('#loading-spinner');
+    loadingSpinner.style.display = 'block';
+    resultsContainer.style.display = 'none';
+
+    setTimeout(() => {
+        loadingSpinner.style.display = 'none';
+        resultsContainer.style.display = 'block';
+
         const maxScore = Math.max(...scores);
         const dominantTypeIndex = scores.indexOf(maxScore);
         const dominantType = dominantTypeIndex + 1;
-        
-        // Limpiar y mostrar solo el resultado del tipo dominante
-        resultsTextDiv.innerHTML = '';
+
         resultsTextDiv.innerHTML = `<p class="dominant-type">Tu tipo de personalidad según el Eneagrama es: <strong>Tipo ${dominantType}</strong></p>`;
-        
-        // Mostrar el contenedor de resultados
-        resultsContainer.style.display = 'block';
-        
-        // Dibujar el gráfico
+
         drawChart(scores, dominantTypeIndex);
-        
-        // Desplazarse a los resultados
-        resultsContainer.scrollIntoView({ behavior: 'smooth' });
-        
-        // Ocultar controles de paginación y formulario
+
         paginationControlsDiv.style.display = 'none';
         submitBtn.style.display = 'none';
         quizForm.style.display = 'none';
-        
-        // Ocultar todas las descripciones de tipos excepto la dominante
+
         if (typeDescriptions && typeDescriptions.length > 0) {
-            typeDescriptions.forEach(desc => {
-                desc.style.display = 'none';
-            });
-            
-            // Mostrar solo la descripción del tipo dominante
+            typeDescriptions.forEach(desc => desc.style.display = 'none');
+
             const dominantTypeDesc = wrapper.querySelector(`#type-${dominantType}`);
             if (dominantTypeDesc) {
                 dominantTypeDesc.style.display = 'block';
@@ -484,7 +477,27 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             console.warn("No se encontraron descripciones de tipos para mostrar/ocultar");
         }
-    }
+
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+
+        resultsTextDiv.innerHTML += `
+            <p style="color:#2ecc71;font-weight:bold;margin-top:15px;">
+                ¡Qué lindo ser quien eres! ¡Celebra tu tipo de personalidad único! 🎉
+            </p>
+            <div class="final-message" style="margin-top:20px;font-size:1.1em;">
+                Ahora que conoces tu tipo, aprovecha estas características únicas para seguir creciendo y desarrollándote. ¡El mundo necesita exactamente quién eres!
+            </div>
+        `;
+
+        resultsContainer.scrollIntoView({ behavior: 'smooth' });
+
+    }, 2500);
+}
+
 
     function drawChart(scores, dominantTypeIndex) {
         const chartCanvas = wrapper.querySelector('#results-chart');
