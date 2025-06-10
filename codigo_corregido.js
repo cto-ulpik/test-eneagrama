@@ -368,18 +368,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updatePaginationButtons() {
-        if (!prevBtn || !nextBtn || !submitBtn) return;
-        
-        const totalPages = Math.ceil(shuffledQuestions.length / questionsPerPage);
-        prevBtn.disabled = currentPage === 1;
-        nextBtn.disabled = currentPage === totalPages;
-        
-        if (currentPage === totalPages) {
-            submitBtn.style.display = 'block';
-        } else {
-            submitBtn.style.display = 'none';
-        }
+    if (!prevBtn || !nextBtn || !submitBtn) return;
+
+    const totalPages = Math.ceil(shuffledQuestions.length / questionsPerPage);
+    prevBtn.disabled = currentPage === 1;
+
+    // Mostrar u ocultar el botón “Siguiente”
+    if (currentPage === totalPages) {
+        nextBtn.style.display = 'none';
+        submitBtn.style.display = 'block';
+    } else {
+        nextBtn.style.display = 'inline-block';
+        submitBtn.style.display = 'none';
     }
+}
+
 
     function areCurrentPageQuestionsAnswered() {
         const startIdx = (currentPage - 1) * questionsPerPage;
