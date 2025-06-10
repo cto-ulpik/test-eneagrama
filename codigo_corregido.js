@@ -340,32 +340,54 @@ setTimeout(() => {
             
             const optionsDiv = document.createElement('div');
             optionsDiv.className = 'options';
+            optionsDiv.style.display = 'flex';
+optionsDiv.style.alignItems = 'center';
+optionsDiv.style.justifyContent = 'space-between';
+optionsDiv.style.gap = '10px';
+
+// Texto al inicio: Nada identificado
+const startLabel = document.createElement('span');
+startLabel.textContent = 'Nada identificado';
+startLabel.style.fontSize = '0.9em';
+startLabel.style.whiteSpace = 'nowrap';
+optionsDiv.appendChild(startLabel);
+            
             
             for (let value = 1; value <= 5; value++) {
-                const label = document.createElement('label');
-                const input = document.createElement('input');
-                input.type = 'radio';
-                input.name = `question-${i}`;
-                input.value = value;
-                
-                if (userResponses[i] === value) {
-                    input.checked = true;
-                }
-                
-                input.addEventListener('change', () => {
-                    userResponses[i] = parseInt(input.value);
-                    questionDiv.style.borderColor = '#e0e0e0';
-                    hideAlert();
-                    updateSubmitButtonVisibility();
-                });
-                
-                const span = document.createElement('span');
-                span.textContent = value;
-                
-                label.appendChild(input);
-                label.appendChild(span);
-                optionsDiv.appendChild(label);
-            }
+    const label = document.createElement('label');
+    label.style.display = 'flex';
+    label.style.flexDirection = 'column';
+    label.style.alignItems = 'center';
+
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = `question-${i}`;
+    input.value = value;
+
+    if (userResponses[i] === value) {
+        input.checked = true;
+    }
+
+    input.addEventListener('change', () => {
+        userResponses[i] = parseInt(input.value);
+        questionDiv.style.borderColor = '#e0e0e0';
+        hideAlert();
+        updateSubmitButtonVisibility();
+    });
+
+    const span = document.createElement('span');
+    span.textContent = value;
+
+    label.appendChild(input);
+    label.appendChild(span);
+    optionsDiv.appendChild(label);
+}
+
+            const endLabel = document.createElement('span');
+endLabel.textContent = 'Muy identificado';
+endLabel.style.fontSize = '0.9em';
+endLabel.style.whiteSpace = 'nowrap';
+optionsDiv.appendChild(endLabel);
             
             questionDiv.appendChild(optionsDiv);
             quizContainer.appendChild(questionDiv);
