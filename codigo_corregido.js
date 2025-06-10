@@ -315,7 +315,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderCurrentPage() {
         if (!quizContainer) return;
-        quizContainer.innerHTML = '';
+        quizContainer.innerHTML = `<div class="pagination-indicator" style="margin-bottom:15px; font-weight:bold;">
+        Página ${currentPage}/${Math.ceil(shuffledQuestions.length / questionsPerPage)}</div>`;
         
         const startIdx = (currentPage - 1) * questionsPerPage;
         const endIdx = Math.min(startIdx + questionsPerPage, shuffledQuestions.length);
