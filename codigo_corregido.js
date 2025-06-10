@@ -303,9 +303,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const totalPages = Math.ceil(shuffledQuestions.length / questionsPerPage);
             if (currentPage < totalPages) {
                 currentPage++;
-                renderCurrentPage();
-                updatePaginationButtons();
-                  quizContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+renderCurrentPage();
+updatePaginationButtons();
+
+// Esperar 50ms para asegurar que el contenido ya esté visible antes de hacer scroll
+setTimeout(() => {
+    quizContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}, 50);
+
             }
         });
         
