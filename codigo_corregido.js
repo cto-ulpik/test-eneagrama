@@ -305,6 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPage++;
                 renderCurrentPage();
                 updatePaginationButtons();
+                  quizContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
         
