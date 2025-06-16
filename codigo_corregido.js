@@ -392,6 +392,17 @@ optionsDiv.appendChild(endLabel);
             questionDiv.appendChild(optionsDiv);
             quizContainer.appendChild(questionDiv);
         }
+    // Indicador inferior (footer)
+    const footer = document.createElement('div');
+    footer.className = 'pagination-indicator';
+    footer.style.marginTop  = '15px';
+    footer.style.fontWeight = 'bold';
+    footer.style.textAlign  = 'center';   // opcional
+    footer.textContent = `Página ${currentPage}/${Math.ceil(shuffledQuestions.length / questionsPerPage)}`;
+    quizContainer.appendChild(footer);
+
+
+        
     }
 
     function updatePaginationButtons() {
