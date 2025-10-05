@@ -76,17 +76,18 @@
                 <span class="scale-item">5 - Totalmente identificado</span>
               </div>
             </div>
-            <div class="test-options">
+            <!-- Modo de selección oculto - siempre usa test completo -->
+            <div class="test-options" style="display: none;">
               <div class="mode-selector">
                 <label class="mode-option">
-                  <input type="radio" name="test-mode" value="prueba" checked>
+                  <input type="radio" name="test-mode" value="prueba">
                   <span class="mode-label">
                     <span class="mode-title">Modo Prueba</span>
                     <span class="mode-description">5 preguntas rápidas</span>
                   </span>
                 </label>
                 <label class="mode-option">
-                  <input type="radio" name="test-mode" value="completo">
+                  <input type="radio" name="test-mode" value="completo" checked>
                   <span class="mode-label">
                     <span class="mode-title">Test Completo</span>
                     <span class="mode-description">180 preguntas detalladas</span>
@@ -96,7 +97,7 @@
             </div>
             
             <button id="start-test-btn" class="cta-button">
-              <span>Empezar Test</span>
+              <span>Empezar Test Completo</span>
               <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>

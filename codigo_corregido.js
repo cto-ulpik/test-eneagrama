@@ -911,7 +911,7 @@ let shuffledQuestions = [];
 let userResponses = [];
 
 // Modo de prueba - cambiar a false para test completo
-let modoPrueba = true;
+let modoPrueba = false; // Siempre usar test completo
 const preguntasPrueba = 5; // Solo 5 preguntas para pruebas
 
 const prevBtn = document.createElement("button");
@@ -987,7 +987,8 @@ function initializeQuiz() {
   nextBtn.addEventListener("click", async () => {
     if (!areCurrentPageQuestionsAnswered()) {
       showAlert(
-        "Por favor, responde todas las preguntas de esta página antes de continuar."
+        "Por favor, responde todas las preguntas de esta página antes de continuar.",
+        "warning"
       );
       return;
     }
@@ -1280,7 +1281,8 @@ function calculateScores() {
           });
         }
         showAlert(
-          "Aún faltan preguntas por responder. Por favor, completa todas."
+          "Aún faltan preguntas por responder. Por favor, completa todas.",
+          "warning"
         );
       }, 100);
       return null;
@@ -1592,15 +1594,15 @@ function showFormError(message) {
     errorMessageDiv.style.opacity = "1";
     errorMessageDiv.style.position = "relative";
     errorMessageDiv.style.zIndex = "9999";
-    errorMessageDiv.style.backgroundColor = "#ffebee";
-    errorMessageDiv.style.border = "3px solid #e74c3c";
+    errorMessageDiv.style.backgroundColor = "#fff8e1";
+    errorMessageDiv.style.border = "3px solid #ff9800";
     errorMessageDiv.style.borderRadius = "12px";
     errorMessageDiv.style.padding = "1.2rem";
     errorMessageDiv.style.margin = "1rem 0";
-    errorMessageDiv.style.color = "#c0392b";
+    errorMessageDiv.style.color = "#e65100";
     errorMessageDiv.style.fontWeight = "700";
     errorMessageDiv.style.fontSize = "1rem";
-    errorMessageDiv.style.boxShadow = "0 4px 20px rgba(231, 76, 60, 0.3)";
+    errorMessageDiv.style.boxShadow = "0 4px 20px rgba(255, 152, 0, 0.3)";
     errorMessageDiv.classList.add("show");
     
     // Remover cualquier estilo que pueda estar ocultando el elemento
@@ -1654,19 +1656,19 @@ function createDynamicErrorMessage(message) {
   const dynamicError = document.createElement("div");
   dynamicError.id = "dynamic-error-message";
   dynamicError.style.cssText = `
-    background: #ffebee;
-    border: 3px solid #e74c3c;
+    background: #fff8e1;
+    border: 3px solid #ff9800;
     border-radius: 12px;
     padding: 1.2rem;
     margin: 1rem 0;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    color: #c0392b;
+    color: #e65100;
     font-weight: 700;
     font-size: 1rem;
     line-height: 1.4;
-    box-shadow: 0 4px 20px rgba(231, 76, 60, 0.3);
+    box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3);
     position: relative;
     z-index: 9999;
     width: 100%;
@@ -1706,7 +1708,7 @@ function showAlert(message, type = "error") {
     case "warning":
       icon = "warning";
       title = "Atención";
-      confirmButtonColor = "#ffc107";
+      confirmButtonColor = "#ff9800";
       break;
     case "success":
       icon = "success";
@@ -1804,12 +1806,8 @@ if (restartTestBtn) {
 // Evento para iniciar test
 if (startTestBtn) {
   startTestBtn.addEventListener("click", function () {
-    // Obtener el modo seleccionado
-    const selectedMode = document.querySelector('input[name="test-mode"]:checked');
-    if (selectedMode) {
-      modoPrueba = selectedMode.value === 'prueba';
-      console.log(`Modo seleccionado: ${modoPrueba ? 'Prueba' : 'Completo'}`);
-    }
+    // Siempre usar test completo (modoPrueba ya está configurado como false)
+    console.log(`Modo configurado: ${modoPrueba ? 'Prueba' : 'Completo'}`);
     initializeQuiz();
   });
 } else {

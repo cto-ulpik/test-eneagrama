@@ -479,10 +479,10 @@ body {
   line-height: 1.5;
 }
 
-/* Mensaje de error del formulario */
+/* Mensaje de warning del formulario */
 .form-error-message {
-  background: #ffebee;
-  border: 3px solid #e74c3c;
+  background: #fff8e1;
+  border: 3px solid #ff9800;
   border-radius: var(--radius-lg);
   padding: 1.2rem;
   margin-bottom: 1.5rem;
@@ -490,7 +490,7 @@ body {
   align-items: center;
   gap: 0.75rem;
   animation: slideDown 0.3s ease-out;
-  box-shadow: 0 4px 20px rgba(231, 76, 60, 0.3);
+  box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3);
   position: relative;
   z-index: 1000;
   width: 100%;
@@ -504,7 +504,7 @@ body {
 }
 
 .error-text {
-  color: #c0392b;
+  color: #e65100;
   font-weight: 700;
   font-size: 1rem;
   line-height: 1.4;
@@ -523,13 +523,13 @@ body {
 
 @keyframes pulse {
   0% {
-    box-shadow: 0 4px 20px rgba(231, 76, 60, 0.3);
+    box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3);
   }
   50% {
-    box-shadow: 0 4px 20px rgba(231, 76, 60, 0.6);
+    box-shadow: 0 4px 20px rgba(255, 152, 0, 0.6);
   }
   100% {
-    box-shadow: 0 4px 20px rgba(231, 76, 60, 0.3);
+    box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3);
   }
 }
 
