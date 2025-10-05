@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           .where("user_id", "==", uid)
           .limit(1);
         await q.get();
-        paintStatus("✔ Conectado a Firestore", "#388e3c");
+        // paintStatus("✔ Conectado a Firestore", "#388e3c");
         console.log("Conexión a Firestore exitosa");
       }
     });
@@ -101,35 +101,271 @@ async function actualizarResultadoFirestore(resultado) {
   await firestoreDocRef.update({ resultado });
 }
 
-// Mejoras UI/UX para el campo de email (después de inicializar todas las variables DOM)
+// Variables para el nuevo flujo
+let emailFormContainer = null;
+let submitEmailBtn = null;
+let emailValido = false;
+
+// Inicializar elementos del formulario de email
 setTimeout(() => {
+  emailFormContainer = document.getElementById("email-form-container");
+  submitEmailBtn = document.getElementById("submit-email-btn");
   const emailInput = document.getElementById("user-email");
   const emailForm = document.getElementById("email-form");
-  let emailValido = false;
-  if (emailInput && startTestBtn) {
-    startTestBtn.disabled = true;
+  
+  console.log("🔍 Inicializando formulario de email:");
+  console.log("emailFormContainer:", !!emailFormContainer);
+  console.log("submitEmailBtn:", !!submitEmailBtn);
+  console.log("emailInput:", !!emailInput);
+  console.log("emailForm:", !!emailForm);
+  
+  if (emailInput && submitEmailBtn) {
+    submitEmailBtn.disabled = true;
+    
     emailInput.addEventListener("input", function () {
       const valor = emailInput.value.trim();
       const esValido = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(valor);
       emailValido = esValido;
       if (esValido) {
-        emailInput.style.borderColor = "#2ecc40";
-        startTestBtn.disabled = false;
-        hideAlert();
+        emailInput.style.borderColor = "#43e97b";
+        submitEmailBtn.disabled = false;
+        hideFormError(); // Limpiar mensaje de error cuando el email es válido
       } else {
-        emailInput.style.borderColor = valor.length > 0 ? "#e74c3c" : "#ccc";
-        startTestBtn.disabled = true;
+        emailInput.style.borderColor = valor.length > 0 ? "#ff6b6b" : "#e2e8f0";
+        submitEmailBtn.disabled = true;
       }
     });
-    startTestBtn.addEventListener("click", function (e) {
-      if (!emailValido) {
+    
+    // Validación inicial del email (por si ya tiene valor)
+    const valorInicial = emailInput.value.trim();
+    const esValidoInicial = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(valorInicial);
+    emailValido = esValidoInicial;
+    console.log("🔍 Validación inicial del email:");
+    console.log("📧 Valor inicial:", valorInicial);
+    console.log("✅ Email válido inicial:", esValidoInicial);
+    console.log("🔒 Botón deshabilitado:", submitEmailBtn.disabled);
+    
+    // Habilitar el botón siempre para permitir validación
+    submitEmailBtn.disabled = false;
+    console.log("🔓 Botón habilitado para permitir validación");
+    
+    // Limpiar errores cuando el usuario interactúa con los checkboxes
+    const consentimientoCheckbox = document.getElementById("consentimiento-checkbox");
+    if (consentimientoCheckbox) {
+      consentimientoCheckbox.addEventListener("change", function() {
+        const label = this.closest('.checkbox-label');
+        if (label && this.checked) {
+          label.classList.remove('error');
+          hideFormError(); // Limpiar mensaje de error cuando se marca el checkbox
+        }
+      });
+    }
+    
+    // Limpiar errores cuando el usuario interactúa con el checkbox de promociones
+    const promocionesCheckbox = document.getElementById("promociones-checkbox");
+    if (promocionesCheckbox) {
+      promocionesCheckbox.addEventListener("change", function() {
+        const label = this.closest('.checkbox-label');
+        if (label && this.checked) {
+          label.classList.remove('error');
+          hideFormError(); // Limpiar mensaje de error cuando se marca el checkbox
+        }
+      });
+    }
+    
+    // Solo usar evento de click directo al botón - sin formulario
+    if (submitEmailBtn) {
+      console.log("✅ Agregando evento click al botón de submit");
+      submitEmailBtn.addEventListener("click", async function(e) {
         e.preventDefault();
-        showAlert("Por favor ingresa un email válido para comenzar.");
+        console.log("=== VER RESULTADOS PRESIONADO (BUTTON CLICK) ===");
+        await handleEmailSubmit();
+      });
+    }
+    
+    // Función para manejar el envío del formulario - lógica similar a botones anterior/siguiente
+    async function handleEmailSubmit() {
+      console.log("🔍 Iniciando validación del formulario de email");
+      console.log("📧 Email input actual:", emailInput ? emailInput.value : "emailInput no encontrado");
+      console.log("🔒 Botón deshabilitado:", submitEmailBtn ? submitEmailBtn.disabled : "submitEmailBtn no encontrado");
+      
+      // Ocultar mensajes de error anteriores
+      hideFormError();
+      
+      // Validar email - similar a areCurrentPageQuestionsAnswered()
+      const emailValue = emailInput.value.trim();
+      const esEmailValido = emailValue.length > 0 && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailValue);
+      
+      console.log("📧 Email value:", emailValue);
+      console.log("📧 Email length:", emailValue.length);
+      console.log("✅ Email valid:", esEmailValido);
+      
+      if (!esEmailValido) {
+        console.log("❌ Email validation failed, showing error");
+        if (emailValue.length === 0) {
+          const errorMsg = "⚠️ Necesitas ingresar un email para ver tus resultados del Eneagrama.";
+          showFormError(errorMsg);
+          
+          // Crear mensaje de error dinámico como respaldo adicional
+          setTimeout(() => {
+            const errorDiv = document.getElementById("form-error-message");
+            const isVisible = errorDiv && window.getComputedStyle(errorDiv).display !== "none";
+            if (!isVisible) {
+              console.log("🔄 Mensaje inline no visible, creando mensaje dinámico");
+              createDynamicErrorMessage(errorMsg);
+            }
+          }, 200);
+        } else {
+          const errorMsg = "⚠️ Necesitas ingresar un email válido para ver tus resultados del Eneagrama.";
+          showFormError(errorMsg);
+          
+          // Crear mensaje de error dinámico como respaldo adicional
+          setTimeout(() => {
+            const errorDiv = document.getElementById("form-error-message");
+            const isVisible = errorDiv && window.getComputedStyle(errorDiv).display !== "none";
+            if (!isVisible) {
+              console.log("🔄 Mensaje inline no visible, creando mensaje dinámico");
+              createDynamicErrorMessage(errorMsg);
+            }
+          }, 200);
+        }
         emailInput.focus();
         return;
       }
-      hideAlert();
-    });
+      
+      // Validar términos y condiciones - similar a areCurrentPageQuestionsAnswered()
+      const consentimientoCheckbox = document.getElementById("consentimiento-checkbox");
+      const consentimientoLabel = consentimientoCheckbox ? consentimientoCheckbox.closest('.checkbox-label') : null;
+      
+      console.log("📋 consentimientoCheckbox found:", !!consentimientoCheckbox);
+      console.log("☑️ consentimientoCheckbox checked:", consentimientoCheckbox ? consentimientoCheckbox.checked : "not found");
+      
+      if (!consentimientoCheckbox || !consentimientoCheckbox.checked) {
+        console.log("❌ Terms validation failed, showing error");
+        const errorMsg = "⚠️ Necesitas marcar los términos y condiciones para ver tus resultados del Eneagrama.";
+        showFormError(errorMsg);
+        
+        // Respaldo temporal con alert para confirmar que la validación funciona
+        setTimeout(() => {
+          const errorDiv = document.getElementById("form-error-message");
+          const isVisible = errorDiv && window.getComputedStyle(errorDiv).display !== "none";
+          if (!isVisible) {
+            console.log("🔄 Mensaje inline no visible, usando alert como respaldo");
+            alert(errorMsg);
+          }
+        }, 500);
+        
+        // Resaltar el checkbox con error
+        if (consentimientoLabel) {
+          consentimientoLabel.classList.add('error');
+          setTimeout(() => {
+            consentimientoLabel.classList.remove('error');
+          }, 2000);
+        }
+        
+        if (consentimientoCheckbox) {
+          consentimientoCheckbox.focus();
+        }
+        return;
+      }
+      
+      console.log("✅ Términos y condiciones validados correctamente");
+      
+      // Validar promociones - también obligatorio
+      const promocionesCheckbox = document.getElementById("promociones-checkbox");
+      const promocionesLabel = promocionesCheckbox ? promocionesCheckbox.closest('.checkbox-label') : null;
+      
+      console.log("📧 promocionesCheckbox found:", !!promocionesCheckbox);
+      console.log("☑️ promocionesCheckbox checked:", promocionesCheckbox ? promocionesCheckbox.checked : "not found");
+      
+      if (!promocionesCheckbox || !promocionesCheckbox.checked) {
+        console.log("❌ Promotions validation failed, showing error");
+        const errorMsg = "⚠️ Necesitas marcar la autorización de promociones para ver tus resultados del Eneagrama.";
+        showFormError(errorMsg);
+        
+        // Respaldo temporal con alert para confirmar que la validación funciona
+        setTimeout(() => {
+          const errorDiv = document.getElementById("form-error-message");
+          const isVisible = errorDiv && window.getComputedStyle(errorDiv).display !== "none";
+          if (!isVisible) {
+            console.log("🔄 Mensaje inline no visible, usando alert como respaldo");
+            alert(errorMsg);
+          }
+        }, 500);
+        
+        // Resaltar el checkbox con error
+        if (promocionesLabel) {
+          promocionesLabel.classList.add('error');
+          setTimeout(() => {
+            promocionesLabel.classList.remove('error');
+          }, 2000);
+        }
+        
+        if (promocionesCheckbox) {
+          promocionesCheckbox.focus();
+        }
+        return;
+      }
+      
+      console.log("✅ Promociones validadas correctamente");
+      
+      // Si llegamos aquí, todo está correcto - similar a como se procesa en el quiz
+      console.log("🎉 Todas las validaciones pasaron, procesando resultados...");
+      
+      // Limpiar errores si todo está bien
+      if (consentimientoLabel) {
+        consentimientoLabel.classList.remove('error');
+      }
+      if (promocionesLabel) {
+        promocionesLabel.classList.remove('error');
+      }
+      
+      hideFormError();
+      await procesarResultadosConEmail();
+    }
+    
+    // Manejar botón cancelar
+    const cancelEmailBtn = document.getElementById("cancel-email-btn");
+    if (cancelEmailBtn) {
+      cancelEmailBtn.addEventListener("click", function() {
+        // Limpiar mensaje de error
+        hideFormError();
+        
+        // Ocultar formulario de email
+        if (emailFormContainer) {
+          emailFormContainer.style.display = "none";
+        }
+        
+        // Regresar a la última página de respuestas
+        if (modoPrueba) {
+          // En modo prueba, mostrar todas las preguntas
+          currentPage = 1;
+          renderCurrentPage();
+          updatePaginationButtons();
+        } else {
+          // En modo completo, ir a la última página
+          const totalPages = Math.ceil(shuffledQuestions.length / questionsPerPage);
+          currentPage = totalPages;
+          renderCurrentPage();
+          updatePaginationButtons();
+        }
+        
+        // Mostrar el quiz nuevamente
+        if (quizForm) {
+          quizForm.style.display = "block";
+        }
+        
+        // Mostrar controles de paginación
+        if (paginationControlsDiv) {
+          paginationControlsDiv.style.display = "block";
+        }
+        
+        // Scroll al quiz
+        if (quizContainer) {
+          quizContainer.scrollIntoView({ behavior: "smooth" });
+        }
+      });
+    }
   }
 }, 0);
 // Seleccionar elementos DENTRO del wrapper para evitar conflictos
@@ -656,15 +892,15 @@ const allQuestionsData = [
 // Asegúrate de tener 20 preguntas por cada uno de los 9 tipos (total 180)
 
 const typeColors = [
-  "#FFC3A0",
-  "#FF6B6B",
-  "#D2691E",
-  "#6A0DAD",
-  "#C3B1E1",
-  "#5F9EA0",
-  "#ADD8E6",
-  "#90EE90",
-  "#FFB6C1",
+  "#667eea", // Tipo 1 - Azul moderno
+  "#f093fb", // Tipo 2 - Rosa vibrante
+  "#4facfe", // Tipo 3 - Azul cielo
+  "#764ba2", // Tipo 4 - Púrpura profundo
+  "#43e97b", // Tipo 5 - Verde esmeralda
+  "#fa709a", // Tipo 6 - Rosa coral
+  "#fee140", // Tipo 7 - Amarillo dorado
+  "#ff6b6b", // Tipo 8 - Rojo coral
+  "#a8edea", // Tipo 9 - Verde menta
 ];
 const typeLabels = Array.from({ length: numTypes }, (_, i) => `Tipo ${i + 1}`);
 const grayColor = "#CCCCCC";
@@ -673,6 +909,10 @@ let currentPage = 1;
 const questionsPerPage = 20; // O 20 si prefieres menos páginas con 180 preguntas
 let shuffledQuestions = [];
 let userResponses = [];
+
+// Modo de prueba - cambiar a false para test completo
+let modoPrueba = true;
+const preguntasPrueba = 5; // Solo 5 preguntas para pruebas
 
 const prevBtn = document.createElement("button");
 prevBtn.type = "button";
@@ -697,12 +937,21 @@ function initializeQuiz() {
     return;
   }
 
-  // Inicializar preguntas y respuestas
+  // Inicializar preguntas y respuestas según el modo
+  if (modoPrueba) {
+    // Modo prueba: solo unas pocas preguntas
+    shuffledQuestions = [...allQuestionsData].slice(0, preguntasPrueba);
+    console.log(`Modo prueba: ${preguntasPrueba} preguntas`);
+  } else {
+    // Modo completo: todas las preguntas
   shuffledQuestions = [...allQuestionsData];
   shuffleArray(shuffledQuestions);
+    console.log(`Modo completo: ${allQuestionsData.length} preguntas`);
+  }
+  
   userResponses = Array(shuffledQuestions.length).fill(null);
 
-  // Mostrar el formulario y ocultar el botón de inicio
+  // Mostrar el formulario y ocultar la pantalla inicial
   if (quizForm && startTestContainer) {
     quizForm.style.display = "block";
     startTestContainer.style.display = "none";
@@ -728,6 +977,10 @@ function initializeQuiz() {
       currentPage--;
       renderCurrentPage();
       updatePaginationButtons();
+      // Scroll suave a la parte superior del quiz
+      setTimeout(() => {
+        quizContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
     }
   });
 
@@ -739,17 +992,20 @@ function initializeQuiz() {
       return;
     }
 
-    // Guardar/actualizar respuestas parciales en Firestore
+    // Guardar/actualizar respuestas parciales en Firestore (solo en modo completo)
+    if (!modoPrueba) {
     await actualizarRespuestasFirestore();
+    }
 
     const totalPages = Math.ceil(shuffledQuestions.length / questionsPerPage);
     if (currentPage < totalPages) {
       currentPage++;
       renderCurrentPage();
       updatePaginationButtons();
+      // Scroll suave a la parte superior del quiz
       setTimeout(() => {
         quizContainer.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 50);
+      }, 100);
     }
   });
 
@@ -760,100 +1016,134 @@ function initializeQuiz() {
 
 function renderCurrentPage() {
   if (!quizContainer) return;
-  quizContainer.innerHTML = `<div class="pagination-indicator" style="margin-bottom:15px; font-weight:bold;">
-        Página ${currentPage}/${Math.ceil(
-    shuffledQuestions.length / questionsPerPage
-  )}</div>`;
+  
+  const totalPages = modoPrueba ? 1 : Math.ceil(shuffledQuestions.length / questionsPerPage);
+  const progressWidth = modoPrueba ? 100 : (currentPage / totalPages) * 100;
+  
+  quizContainer.innerHTML = `
+    <div class="quiz-header">
+      <h2 class="quiz-title">Test de Personalidad Eneagrama</h2>
+      <div class="quiz-mode-indicator">
+        ${modoPrueba ? 
+          `<span class="mode-badge mode-prueba">Modo Prueba (${preguntasPrueba} preguntas)</span>` : 
+          `<span class="mode-badge mode-completo">Test Completo (${allQuestionsData.length} preguntas)</span>`
+        }
+      </div>
+      <div class="pagination-indicator">
+        ${modoPrueba ? 
+          `Pregunta ${currentPage} de ${shuffledQuestions.length}` : 
+          `Página ${currentPage}/${totalPages}`
+        }
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: ${progressWidth}%"></div>
+      </div>
+    </div>`;
 
-  const startIdx = (currentPage - 1) * questionsPerPage;
-  const endIdx = Math.min(
-    startIdx + questionsPerPage,
-    shuffledQuestions.length
-  );
+  let startIdx, endIdx;
+  
+  if (modoPrueba) {
+    // En modo prueba, mostrar todas las preguntas de una vez
+    startIdx = 0;
+    endIdx = shuffledQuestions.length;
+  } else {
+    // En modo completo, usar paginación normal
+    startIdx = (currentPage - 1) * questionsPerPage;
+    endIdx = Math.min(startIdx + questionsPerPage, shuffledQuestions.length);
+  }
 
   for (let i = startIdx; i < endIdx; i++) {
     const question = shuffledQuestions[i];
     const questionDiv = document.createElement("div");
-    questionDiv.className = "question ui-card";
+    questionDiv.className = "question question-card";
     questionDiv.id = `question-global-${i}`;
 
+    // Número de pregunta
+    const questionNumber = document.createElement("div");
+    questionNumber.className = "question-number";
+    questionNumber.textContent = `Pregunta ${i + 1}`;
+    questionDiv.appendChild(questionNumber);
+
     const questionText = document.createElement("div");
-    questionText.className = "question-text ui-card-title";
+    questionText.className = "question-text";
     questionText.textContent = question.text;
     questionDiv.appendChild(questionText);
 
     const optionsDiv = document.createElement("div");
-    optionsDiv.className = "options ui-options";
-    optionsDiv.style.display = "flex";
-    optionsDiv.style.alignItems = "center";
-    optionsDiv.style.justifyContent = "space-between";
-    optionsDiv.style.gap = "10px";
+    optionsDiv.className = "options-container";
 
-    // Texto al inicio: Nada identificado
-    const startLabel = document.createElement("span");
-    startLabel.textContent = "Nada identificado";
-    startLabel.style.fontSize = "0.9em";
-    startLabel.style.whiteSpace = "nowrap";
-    optionsDiv.appendChild(startLabel);
+    // Etiquetas de escala
+    const scaleLabels = document.createElement("div");
+    scaleLabels.className = "scale-labels";
+    scaleLabels.innerHTML = `
+      <span class="scale-label-left">Nada identificado</span>
+      <span class="scale-label-right">Muy identificado</span>
+    `;
+    optionsDiv.appendChild(scaleLabels);
+
+    // Contenedor de opciones
+    const optionsWrapper = document.createElement("div");
+    optionsWrapper.className = "options-wrapper";
 
     for (let value = 1; value <= 5; value++) {
       const label = document.createElement("label");
-      label.className = "ui-option-label";
-      label.style.display = "flex";
-      label.style.flexDirection = "column";
-      label.style.alignItems = "center";
-      label.style.position = "relative";
-      label.style.transition = "box-shadow 0.2s, border-color 0.2s";
-
-      // Icono visual (puedes cambiar el emoji por SVG si lo prefieres)
-      const icon = document.createElement("span");
-      icon.className = "ui-option-icon";
-      icon.style.fontSize = "1.2em";
-      icon.style.marginBottom = "2px";
-      icon.textContent = value === 1 ? "😐" : value === 5 ? "😃" : "🙂";
-      label.appendChild(icon);
+      label.className = "option-label";
+      label.setAttribute("data-value", value);
 
       const input = document.createElement("input");
       input.type = "radio";
       input.name = `question-${i}`;
       input.value = value;
-      input.style.marginBottom = "4px";
+      input.className = "option-input";
+
+      const optionContent = document.createElement("div");
+      optionContent.className = "option-content";
+
+      // Icono visual mejorado
+      const icon = document.createElement("div");
+      icon.className = "option-icon";
+      const icons = ["😐", "🙁", "😐", "🙂", "😃"];
+      icon.textContent = icons[value - 1];
+      optionContent.appendChild(icon);
+
+      const number = document.createElement("div");
+      number.className = "option-number";
+      number.textContent = value;
+      optionContent.appendChild(number);
+
+      const text = document.createElement("div");
+      text.className = "option-text";
+      const texts = ["Nada", "Poco", "Regular", "Bastante", "Mucho"];
+      text.textContent = texts[value - 1];
+      optionContent.appendChild(text);
+
+      label.appendChild(input);
+      label.appendChild(optionContent);
 
       if (userResponses[i] === value) {
         input.checked = true;
-        label.style.background = "#e3f2fd";
-        label.style.boxShadow = "0 2px 8px rgba(63,81,181,0.08)";
-        label.style.borderColor = "#3f51b5";
+        label.classList.add("selected");
       }
 
       input.addEventListener("change", () => {
         userResponses[i] = parseInt(input.value);
-        // Animación y feedback visual
+        
+        // Remover selección de otras opciones
         document.querySelectorAll(`[name='question-${i}']`).forEach((el) => {
-          el.parentElement.style.background = "#fff";
-          el.parentElement.style.boxShadow = "none";
-          el.parentElement.style.borderColor = "#ccc";
+          el.parentElement.classList.remove("selected");
         });
-        label.style.background = "#e3f2fd";
-        label.style.boxShadow = "0 2px 8px rgba(63,81,181,0.08)";
-        label.style.borderColor = "#3f51b5";
+        
+        // Agregar selección a la opción actual
+        label.classList.add("selected");
+        
         hideAlert();
         updateSubmitButtonVisibility();
       });
 
-      const span = document.createElement("span");
-      span.textContent = value;
-      span.style.fontWeight = "bold";
-      label.appendChild(input);
-      label.appendChild(span);
-      optionsDiv.appendChild(label);
+      optionsWrapper.appendChild(label);
     }
 
-    const endLabel = document.createElement("span");
-    endLabel.textContent = "Muy identificado";
-    endLabel.style.fontSize = "0.9em";
-    endLabel.style.whiteSpace = "nowrap";
-    optionsDiv.appendChild(endLabel);
+    optionsDiv.appendChild(optionsWrapper);
 
     questionDiv.appendChild(optionsDiv);
     quizContainer.appendChild(questionDiv);
@@ -873,10 +1163,23 @@ function renderCurrentPage() {
 function updatePaginationButtons() {
   if (!prevBtn || !nextBtn || !submitBtn) return;
 
+  if (modoPrueba) {
+    // En modo prueba, solo mostrar el botón de enviar
+    prevBtn.style.display = "none";
+    nextBtn.style.display = "none";
+    submitBtn.style.display = "block";
+    
+    const pagBtnsWrapper = paginationControlsDiv.querySelector("div");
+    if (pagBtnsWrapper) {
+      pagBtnsWrapper.innerHTML = "";
+      pagBtnsWrapper.appendChild(submitBtn);
+    }
+  } else {
+    // Modo completo con paginación normal
   const totalPages = Math.ceil(shuffledQuestions.length / questionsPerPage);
   prevBtn.disabled = currentPage === 1;
 
-  // Mostrar u ocultar el botón “Siguiente”
+    // Mostrar u ocultar el botón "Siguiente"
   if (currentPage === totalPages) {
     nextBtn.style.display = "none";
     submitBtn.style.display = "block";
@@ -900,15 +1203,22 @@ function updatePaginationButtons() {
       nextBtn.style.display = "inline-block";
     }
     submitBtn.style.display = "none";
+    }
   }
 }
 
 function areCurrentPageQuestionsAnswered() {
-  const startIdx = (currentPage - 1) * questionsPerPage;
-  const endIdx = Math.min(
-    startIdx + questionsPerPage,
-    shuffledQuestions.length
-  );
+  let startIdx, endIdx;
+  
+  if (modoPrueba) {
+    // En modo prueba, verificar todas las preguntas
+    startIdx = 0;
+    endIdx = shuffledQuestions.length;
+  } else {
+    // En modo completo, verificar solo la página actual
+    startIdx = (currentPage - 1) * questionsPerPage;
+    endIdx = Math.min(startIdx + questionsPerPage, shuffledQuestions.length);
+  }
 
   for (let i = startIdx; i < endIdx; i++) {
     if (userResponses[i] === null) {
@@ -927,11 +1237,20 @@ function updateSubmitButtonVisibility() {
   if (!submitBtn) return;
 
   const allAnswered = userResponses.every((response) => response !== null);
+  
+  if (modoPrueba) {
+    // En modo prueba, mostrar el botón cuando todas las preguntas estén respondidas
+    if (allAnswered) {
+      submitBtn.style.display = "block";
+    }
+  } else {
+    // En modo completo, mostrar el botón solo en la última página
   if (
     allAnswered &&
     currentPage === Math.ceil(shuffledQuestions.length / questionsPerPage)
   ) {
     submitBtn.style.display = "block";
+    }
   }
 }
 
@@ -996,6 +1315,87 @@ function displayResults(scores) {
   )
     return;
 
+  // Guardar los scores para usar después
+  window.calculatedScores = scores;
+
+  // Ocultar el quiz
+  paginationControlsDiv.style.display = "none";
+  submitBtn.style.display = "none";
+  quizForm.style.display = "none";
+  
+  // Mostrar el formulario de email en ambos modos
+  if (emailFormContainer) {
+    // Actualizar el texto según el modo
+    const titleElement = document.getElementById("email-form-title");
+    const descriptionElement = document.getElementById("email-form-description");
+    const privacyElement = document.getElementById("privacy-note");
+    
+    if (modoPrueba) {
+      if (titleElement) titleElement.textContent = "Eneagrama - Para ver tus resultados de prueba";
+      if (descriptionElement) descriptionElement.textContent = "Ingresa tu email para ver el resultado de tu test de prueba (no se guardará en la base de datos).";
+      if (privacyElement) {
+        privacyElement.innerHTML = '<em>Modo prueba: Tu email no se guardará en la base de datos. Solo se usa para mostrar los resultados.</em>';
+      }
+    } else {
+      if (titleElement) titleElement.textContent = "Eneagrama - Para ver tus resultados";
+      if (descriptionElement) descriptionElement.textContent = "Necesitamos tu email para enviarte un análisis personalizado de tu personalidad.";
+      if (privacyElement) {
+        privacyElement.innerHTML = '<em>Este test es personalizado para ti. Usamos tu correo solo para identificarte y mejorar tu experiencia. No compartimos tus datos.</em>';
+      }
+    }
+    
+    emailFormContainer.style.display = "block";
+    emailFormContainer.scrollIntoView({ behavior: "smooth" });
+    
+    // Verificar que el formulario existe después de mostrarlo
+    setTimeout(() => {
+      const emailFormCheck = document.getElementById("email-form");
+      const submitBtnCheck = document.getElementById("submit-email-btn");
+      console.log("🔍 Verificando formulario después de mostrarlo:");
+      console.log("emailFormCheck:", !!emailFormCheck);
+      console.log("submitBtnCheck:", !!submitBtnCheck);
+      console.log("modoPrueba:", modoPrueba);
+    }, 100);
+  }
+}
+
+// Nueva función para procesar resultados con email
+async function procesarResultadosConEmail() {
+  const emailInput = document.getElementById("user-email");
+  const emailDisplay = document.getElementById("user-email-display");
+  
+  if (emailInput && emailDisplay) {
+    emailDisplay.textContent = `Usuario: ${emailInput.value}`;
+    emailDisplay.style.display = "block";
+  }
+  
+  if (modoPrueba) {
+    // En modo prueba, no guardar en Firestore pero procesar el email
+    console.log("Modo prueba: procesando email sin guardar en Firestore");
+  } else {
+    // En modo completo, crear documento en Firestore
+    await crearDocumentoFirestore(emailInput.value);
+  }
+  
+  // Ocultar formulario de email
+  if (emailFormContainer) {
+    emailFormContainer.style.display = "none";
+  }
+  
+  // Mostrar mensaje de éxito
+  showAlert("¡Perfecto! Procesando tus resultados...", "success");
+  
+  // Mostrar resultados después de un breve delay
+  setTimeout(() => {
+    hideAlert();
+    mostrarResultadosFinales(window.calculatedScores);
+  }, 1500);
+}
+
+// Función para mostrar los resultados finales
+function mostrarResultadosFinales(scores) {
+  if (!resultsTextDiv || !resultsContainer) return;
+
   const loadingSpinner = wrapper.querySelector("#loading-spinner");
   loadingSpinner.style.display = "block";
   resultsContainer.style.display = "none";
@@ -1008,13 +1408,40 @@ function displayResults(scores) {
     const dominantTypeIndex = scores.indexOf(maxScore);
     const dominantType = dominantTypeIndex + 1;
 
-    resultsTextDiv.innerHTML = `<p class="dominant-type">Tu tipo de personalidad según el Eneagrama es: <strong>Tipo ${dominantType}</strong></p>`;
+    // Mensaje diferente según el modo
+    const modoText = modoPrueba ? 
+      '<p style="color:#fa709a;font-weight:bold;margin-bottom:10px;font-size:0.9em;">🧪 Modo Prueba - Resultado de muestra</p>' : 
+      '';
+    
+    resultsTextDiv.innerHTML = `
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
+          <div class="eneagram-icon" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: var(--primary-gradient); border-radius: 50%; box-shadow: var(--shadow-lg);">
+            <svg class="eneagram-svg" width="40" height="40" viewBox="0 0 100 100" style="fill: white;">
+              <circle cx="50" cy="50" r="45" stroke="white" stroke-width="2" fill="none"/>
+              <circle cx="50" cy="20" r="8" fill="white"/>
+              <circle cx="20" cy="30" r="8" fill="white"/>
+              <circle cx="80" cy="30" r="8" fill="white"/>
+              <circle cx="30" cy="70" r="8" fill="white"/>
+              <circle cx="70" cy="70" r="8" fill="white"/>
+              <circle cx="50" cy="80" r="8" fill="white"/>
+              <line x1="50" y1="20" x2="20" y2="30" stroke="white" stroke-width="2"/>
+              <line x1="50" y1="20" x2="80" y2="30" stroke="white" stroke-width="2"/>
+              <line x1="20" y1="30" x2="30" y2="70" stroke="white" stroke-width="2"/>
+              <line x1="80" y1="30" x2="70" y2="70" stroke="white" stroke-width="2"/>
+              <line x1="30" y1="70" x2="50" y2="80" stroke="white" stroke-width="2"/>
+              <line x1="70" y1="70" x2="50" y2="80" stroke="white" stroke-width="2"/>
+            </svg>
+          </div>
+          <h1 class="results-title" style="font-size: 2.5rem; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0;">Eneagrama</h1>
+        </div>
+        <p class="results-subtitle" style="color: var(--text-secondary); font-size: 1.1rem;">Análisis de Personalidad</p>
+      </div>
+      ${modoText}
+      <p class="dominant-type">Tu tipo de personalidad según el Eneagrama es: <strong>Tipo ${dominantType}</strong></p>
+    `;
 
     drawChart(scores, dominantTypeIndex);
-
-    paginationControlsDiv.style.display = "none";
-    submitBtn.style.display = "none";
-    quizForm.style.display = "none";
 
     if (typeDescriptions && typeDescriptions.length > 0) {
       typeDescriptions.forEach((desc) => (desc.style.display = "none"));
@@ -1030,20 +1457,44 @@ function displayResults(scores) {
       );
     }
 
+    // Efecto de confetti mejorado
     confetti({
-      particleCount: 100,
+      particleCount: 150,
       spread: 70,
       origin: { y: 0.6 },
+      colors: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b'],
+      shapes: ['circle', 'square'],
+      scalar: 1.2
     });
+    
+    // Segundo confetti después de un delay
+    setTimeout(() => {
+      confetti({
+        particleCount: 100,
+        spread: 50,
+        origin: { y: 0.4 },
+        colors: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b'],
+        shapes: ['circle', 'square'],
+        scalar: 0.8
+      });
+    }, 500);
 
-    resultsTextDiv.innerHTML += `
-            <p style="color:#2ecc71;font-weight:bold;margin-top:15px;">
+    // Mensaje final diferente según el modo
+    const finalMessage = modoPrueba ? 
+      `<p style="color:#43e97b;font-weight:bold;margin-top:15px;">
+          ¡Resultado de prueba! Para un análisis completo, haz el test completo con 180 preguntas. 🎯
+      </p>
+      <div class="final-message" style="margin-top:20px;font-size:1.1em;">
+          Este es solo un resultado de muestra con 5 preguntas. El test completo te dará un análisis más preciso de tu personalidad.
+      </div>` :
+      `<p style="color:#43e97b;font-weight:bold;margin-top:15px;">
                 ¡Qué lindo ser quien eres! ¡Celebra tu tipo de personalidad único! 🎉
             </p>
             <div class="final-message" style="margin-top:20px;font-size:1.1em;">
                 Ahora que conoces tu tipo, aprovecha estas características únicas para seguir creciendo y desarrollándote. ¡El mundo necesita exactamente quién eres!
-            </div>
-        `;
+      </div>`;
+
+    resultsTextDiv.innerHTML += finalMessage;
 
     resultsContainer.scrollIntoView({ behavior: "smooth" });
   }, 2500);
@@ -1122,29 +1573,216 @@ function drawChart(scores, dominantTypeIndex) {
   });
 }
 
-function showAlert(message) {
-  if (!alertMessageDiv) return;
-  alertMessageDiv.textContent = message;
-  alertMessageDiv.style.display = "block";
-  alertMessageDiv.style.background = "#ffeaea";
-  alertMessageDiv.style.color = "#e74c3c";
-  alertMessageDiv.style.border = "1px solid #e74c3c";
-  alertMessageDiv.style.padding = "10px";
-  alertMessageDiv.style.borderRadius = "6px";
-  alertMessageDiv.style.margin = "10px auto";
-  alertMessageDiv.style.maxWidth = "350px";
-  alertMessageDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+// Función para mostrar mensaje de error en el formulario
+function showFormError(message) {
+  console.log("🚨 showFormError called with:", message);
+  const errorMessageDiv = document.getElementById("form-error-message");
+  const errorTextSpan = errorMessageDiv ? errorMessageDiv.querySelector(".error-text") : null;
+  
+  console.log("🔍 errorMessageDiv found:", !!errorMessageDiv);
+  console.log("🔍 errorTextSpan found:", !!errorTextSpan);
+  
+  if (errorMessageDiv && errorTextSpan) {
+    // Establecer el texto del mensaje
+    errorTextSpan.textContent = message;
+    
+    // Forzar visibilidad con múltiples métodos - ARREGLAR OPACITY
+    errorMessageDiv.style.display = "flex";
+    errorMessageDiv.style.visibility = "visible";
+    errorMessageDiv.style.opacity = "1";
+    errorMessageDiv.style.position = "relative";
+    errorMessageDiv.style.zIndex = "9999";
+    errorMessageDiv.style.backgroundColor = "#ffebee";
+    errorMessageDiv.style.border = "3px solid #e74c3c";
+    errorMessageDiv.style.borderRadius = "12px";
+    errorMessageDiv.style.padding = "1.2rem";
+    errorMessageDiv.style.margin = "1rem 0";
+    errorMessageDiv.style.color = "#c0392b";
+    errorMessageDiv.style.fontWeight = "700";
+    errorMessageDiv.style.fontSize = "1rem";
+    errorMessageDiv.style.boxShadow = "0 4px 20px rgba(231, 76, 60, 0.3)";
+    errorMessageDiv.classList.add("show");
+    
+    // Remover cualquier estilo que pueda estar ocultando el elemento
+    errorMessageDiv.removeAttribute("hidden");
+    errorMessageDiv.removeAttribute("aria-hidden");
+    
+    console.log("✅ Error message should be visible now");
+    console.log("📊 Computed styles:", {
+      display: window.getComputedStyle(errorMessageDiv).display,
+      visibility: window.getComputedStyle(errorMessageDiv).visibility,
+      opacity: window.getComputedStyle(errorMessageDiv).opacity,
+      position: window.getComputedStyle(errorMessageDiv).position,
+      zIndex: window.getComputedStyle(errorMessageDiv).zIndex
+    });
+    
+    // Scroll al mensaje de error
+    setTimeout(() => {
+      errorMessageDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+  } else {
+    console.log("❌ Error: Could not find form-error-message elements");
+  }
+}
+
+// Función para ocultar mensaje de error del formulario
+function hideFormError() {
+  const errorMessageDiv = document.getElementById("form-error-message");
+  if (errorMessageDiv) {
+    errorMessageDiv.style.display = "none";
+    errorMessageDiv.style.visibility = "hidden";
+    errorMessageDiv.style.opacity = "0";
+    errorMessageDiv.classList.remove("show");
+  }
+  
+  // También ocultar mensaje dinámico si existe
+  const dynamicError = document.getElementById("dynamic-error-message");
+  if (dynamicError) {
+    dynamicError.remove();
+  }
+}
+
+// Función para crear mensaje de error dinámico como respaldo
+function createDynamicErrorMessage(message) {
+  // Remover mensaje dinámico anterior si existe
+  const existingDynamic = document.getElementById("dynamic-error-message");
+  if (existingDynamic) {
+    existingDynamic.remove();
+  }
+  
+  // Crear nuevo mensaje de error dinámico
+  const dynamicError = document.createElement("div");
+  dynamicError.id = "dynamic-error-message";
+  dynamicError.style.cssText = `
+    background: #ffebee;
+    border: 3px solid #e74c3c;
+    border-radius: 12px;
+    padding: 1.2rem;
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #c0392b;
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.4;
+    box-shadow: 0 4px 20px rgba(231, 76, 60, 0.3);
+    position: relative;
+    z-index: 9999;
+    width: 100%;
+    max-width: 100%;
+    animation: slideDown 0.3s ease-out;
+  `;
+  
+  dynamicError.innerHTML = `
+    <span style="font-size: 1.2rem; flex-shrink: 0;">⚠️</span>
+    <span>${message}</span>
+  `;
+  
+  // Insertar antes de los botones
+  const formButtons = document.querySelector(".form-buttons");
+  if (formButtons) {
+    formButtons.parentNode.insertBefore(dynamicError, formButtons);
+    console.log("✅ Mensaje de error dinámico creado y mostrado");
+    
+    // Scroll al mensaje
+    setTimeout(() => {
+      dynamicError.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+  } else {
+    console.log("❌ No se pudo encontrar .form-buttons para insertar el mensaje");
+  }
+}
+
+function showAlert(message, type = "error") {
+  let icon, title, confirmButtonColor;
+  
+  switch (type) {
+    case "error":
+      icon = "error";
+      title = "Error";
+      confirmButtonColor = "#e74c3c";
+      break;
+    case "warning":
+      icon = "warning";
+      title = "Atención";
+      confirmButtonColor = "#ffc107";
+      break;
+    case "success":
+      icon = "success";
+      title = "¡Perfecto!";
+      confirmButtonColor = "#43e97b";
+      break;
+    default:
+      icon = "info";
+      title = "Información";
+      confirmButtonColor = "#667eea";
+  }
+  
+  Swal.fire({
+    title: title,
+    text: message,
+    icon: icon,
+    confirmButtonText: "Entendido",
+    confirmButtonColor: confirmButtonColor,
+    background: "#ffffff",
+    color: "#2d3748",
+    customClass: {
+      popup: 'swal-popup-custom',
+      title: 'swal-title-custom',
+      content: 'swal-content-custom',
+      confirmButton: 'swal-button-custom'
+    },
+    showClass: {
+      popup: 'animate__animated animate__fadeInDown'
+    },
+    hideClass: {
+      popup: 'animate__animated animate__fadeOutUp'
+    }
+  });
 }
 
 function hideAlert() {
-  if (!alertMessageDiv) return;
-  alertMessageDiv.style.display = "none";
+  // SweetAlert2 se cierra automáticamente, pero podemos forzar el cierre si es necesario
+  if (Swal.isVisible()) {
+    Swal.close();
+  }
+}
+
+// Función para mostrar notificaciones de confirmación
+function showConfirmation(title, text, confirmText = "Sí", cancelText = "No") {
+  return Swal.fire({
+    title: title,
+    text: text,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: confirmText,
+    cancelButtonText: cancelText,
+    confirmButtonColor: "#43e97b",
+    cancelButtonColor: "#e74c3c",
+    background: "#ffffff",
+    color: "#2d3748",
+    customClass: {
+      popup: 'swal-popup-custom',
+      title: 'swal-title-custom',
+      content: 'swal-content-custom',
+      confirmButton: 'swal-button-custom',
+      cancelButton: 'swal-button-custom'
+    },
+    showClass: {
+      popup: 'animate__animated animate__fadeInDown'
+    },
+    hideClass: {
+      popup: 'animate__animated animate__fadeOutUp'
+    }
+  });
 }
 
 if (restartTestBtn) {
   restartTestBtn.addEventListener("click", () => {
     if (resultsContainer) resultsContainer.style.display = "none";
     if (startTestContainer) startTestContainer.style.display = "block";
+    if (emailFormContainer) emailFormContainer.style.display = "none";
 
     if (typeDescriptions && typeDescriptions.length > 0) {
       typeDescriptions.forEach((desc) => (desc.style.display = "none"));
@@ -1153,6 +1791,7 @@ if (restartTestBtn) {
     currentPage = 1;
     shuffledQuestions = [];
     userResponses = [];
+    window.calculatedScores = null;
     if (resultsChart) {
       resultsChart.destroy();
       resultsChart = null;
@@ -1164,15 +1803,13 @@ if (restartTestBtn) {
 
 // Evento para iniciar test
 if (startTestBtn) {
-  startTestBtn.addEventListener("click", async function () {
-    const emailInput = document.getElementById("user-email");
-    const emailDisplay = document.getElementById("user-email-display");
-    if (emailInput && emailDisplay) {
-      emailDisplay.textContent = `Usuario: ${emailInput.value}`;
-      emailDisplay.style.display = "block";
+  startTestBtn.addEventListener("click", function () {
+    // Obtener el modo seleccionado
+    const selectedMode = document.querySelector('input[name="test-mode"]:checked');
+    if (selectedMode) {
+      modoPrueba = selectedMode.value === 'prueba';
+      console.log(`Modo seleccionado: ${modoPrueba ? 'Prueba' : 'Completo'}`);
     }
-    // Crear documento en Firestore al iniciar el test
-    await crearDocumentoFirestore(emailInput.value);
     initializeQuiz();
   });
 } else {
@@ -1188,7 +1825,12 @@ if (quizForm) {
     if (!areCurrentPageQuestionsAnswered()) return;
     const scores = calculateScores();
     if (scores) {
-      // Guardar respuestas finales y resultado en Firestore
+      if (modoPrueba) {
+        // En modo prueba, no guardar en Firestore
+        console.log("Modo prueba: saltando guardado en Firestore");
+        displayResults(scores);
+      } else {
+        // En modo completo, guardar respuestas finales y resultado en Firestore
       await actualizarRespuestasFirestore();
       // Modelo resultado: { tipo, puntaje, descripcion }
       const maxScore = Math.max(...scores);
@@ -1200,6 +1842,7 @@ if (quizForm) {
       };
       await actualizarResultadoFirestore(resultado);
       displayResults(scores);
+      }
     }
   });
 } else {

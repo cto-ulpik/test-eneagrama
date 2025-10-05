@@ -6,6 +6,8 @@
     <title>Test de Personalidad Eneagrama</title>
     <link rel="stylesheet" href="styles.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SweetAlert2 para notificaciones modernas -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Firebase SDK (Compat) para que funcione con firebase.* en codigo_corregido.js -->
     <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics-compat.js"></script>
@@ -34,9 +36,138 @@
     </script>
   </head>
   <body>
+    <!-- Efecto de partículas en el fondo -->
+    <div id="particles-background"></div>
     <div id="eneagram-test-wrapper">
       <div class="container">
-        <h1>Test de Personalidad Eneagrama</h1>
+        <!-- Pantalla inicial moderna -->
+        <div id="start-test-container" class="hero-section">
+          <div class="hero-content">
+            <div class="eneagram-icon">
+              <svg viewBox="0 0 100 100" class="eneagram-svg">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2"/>
+                <circle cx="50" cy="50" r="3" fill="currentColor"/>
+                <line x1="50" y1="5" x2="50" y2="95" stroke="currentColor" stroke-width="1"/>
+                <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" stroke-width="1"/>
+                <line x1="20" y1="20" x2="80" y2="80" stroke="currentColor" stroke-width="1"/>
+                <line x1="80" y1="20" x2="20" y2="80" stroke="currentColor" stroke-width="1"/>
+                <circle cx="50" cy="10" r="4" fill="currentColor"/>
+                <circle cx="50" cy="90" r="4" fill="currentColor"/>
+                <circle cx="10" cy="50" r="4" fill="currentColor"/>
+                <circle cx="90" cy="50" r="4" fill="currentColor"/>
+                <circle cx="25" cy="25" r="4" fill="currentColor"/>
+                <circle cx="75" cy="75" r="4" fill="currentColor"/>
+                <circle cx="75" cy="25" r="4" fill="currentColor"/>
+                <circle cx="25" cy="75" r="4" fill="currentColor"/>
+              </svg>
+            </div>
+            <h1 class="hero-title">Descubre tu Personalidad</h1>
+            <p class="hero-subtitle">Test de Eneagrama 2025</p>
+            <p class="intro-text">
+              El Eneagrama es un sistema que describe nueve tipos de personalidad
+              distintos y sus interrelaciones. Este test te ayudará a descubrir tu
+              tipo de personalidad predominante según el Eneagrama.
+            </p>
+            <div class="instructions">
+              <h3>Instrucciones:</h3>
+              <p>Responde cada pregunta usando la escala del 1 al 5:</p>
+              <div class="scale-example">
+                <span class="scale-item">1 - Muy poco identificado</span>
+                <span class="scale-item">5 - Totalmente identificado</span>
+              </div>
+            </div>
+            <div class="test-options">
+              <div class="mode-selector">
+                <label class="mode-option">
+                  <input type="radio" name="test-mode" value="prueba" checked>
+                  <span class="mode-label">
+                    <span class="mode-title">Modo Prueba</span>
+                    <span class="mode-description">5 preguntas rápidas</span>
+                  </span>
+                </label>
+                <label class="mode-option">
+                  <input type="radio" name="test-mode" value="completo">
+                  <span class="mode-label">
+                    <span class="mode-title">Test Completo</span>
+                    <span class="mode-description">180 preguntas detalladas</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+            
+            <button id="start-test-btn" class="cta-button">
+              <span>Empezar Test</span>
+              <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Formulario de email y términos (oculto inicialmente) -->
+        <div id="email-form-container" class="email-form-section" style="display: none;">
+          <div class="form-card">
+            <h2 id="email-form-title">Para ver tus resultados</h2>
+            <p id="email-form-description" class="form-description">Necesitamos tu email para enviarte un análisis personalizado de tu personalidad.</p>
+            
+            <div id="email-form">
+              <div class="input-group">
+                <label for="user-email">Email: <span class="required-asterisk">*</span></label>
+                <input
+                  type="email"
+                  id="user-email"
+                  name="user-email"
+                  placeholder="tu@email.com"
+                />
+              </div>
+              
+              <div class="checkbox-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="consentimiento-checkbox" />
+                  <span class="checkmark"></span>
+                  Acepto los
+                  <a 
+                    href="https://ulpik.com/wp-content/uploads/2025/09/Ulpik-Terminos-y-Condiciones-2025.-1.pdf" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >términos y condiciones</a>
+                  y el uso de mis datos para este test. <span class="required-asterisk">*</span>
+                </label>
+              </div>
+              
+              <div class="checkbox-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="promociones-checkbox" />
+                  <span class="checkmark"></span>
+                  Al hacer clic, autorizo recibir correos y promociones. <span class="required-asterisk">*</span>
+                </label>
+              </div>
+              
+              <div id="privacy-note" class="privacy-note">
+                <em>
+                  Este test es personalizado para ti. Usamos tu correo solo para
+                  identificarte y mejorar tu experiencia. No compartimos tus
+                  datos.
+                </em>
+              </div>
+              
+              <div id="form-error-message" class="form-error-message" style="display: none;">
+                <span class="error-icon">⚠️</span>
+                <span class="error-text"></span>
+              </div>
+              
+              <div class="form-buttons">
+                <button type="button" id="submit-email-btn" class="submit-button">
+                  Ver Mis Resultados
+                </button>
+                <button type="button" id="cancel-email-btn" class="cancel-button">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div
           id="user-email-display"
           style="
@@ -46,68 +177,6 @@
             margin-bottom: 10px;
           "
         ></div>
-
-        <div
-          id="start-test-container"
-          style="text-align: center; margin-bottom: 30px"
-        >
-          <form id="email-form" style="margin-bottom: 20px">
-            <label for="user-email"><strong>Email:</strong></label
-            ><br />
-            <input
-              type="email"
-              id="user-email"
-              name="user-email"
-              required
-              placeholder="Ingresa tu email"
-              style="width: 250px; padding: 8px; margin-top: 8px"
-            />
-            <div style="margin-bottom: 8px;">
-            <input type="checkbox" id="consentimiento-checkbox" required />
-            <label for="consentimiento-checkbox" style="font-size: 0.98em; color: #555">
-              Acepto los
-              <a 
-                href="https://ulpik.com/wp-content/uploads/2025/09/Ulpik-Terminos-y-Condiciones-2025.-1.pdf" 
-                target="_blank"
-                rel="noopener noreferrer"
-              >términos y condiciones</a>
-              y el uso de mis datos para este test.
-            </label>
-          </div>
-          <div>
-            <input type="checkbox" id="promociones-checkbox" />
-            <label for="promociones-checkbox" style="font-size: 0.98em; color: #555">
-              Al hacer clic, autorizo recibir correos y promociones.
-            </label>
-          </div>
-            <div
-              style="
-                font-size: 0.98em;
-                color: #555;
-                margin-top: 10px;
-                margin-bottom: 5px;
-              "
-            >
-              <em>
-                Este test es personalizado para ti. Usamos tu correo solo para
-                identificarte y mejorar tu experiencia. No compartimos tus
-                datos.
-              </em>
-            </div>
-          </form>
-          <p class="intro-text">
-            El Eneagrama es un sistema que describe nueve tipos de personalidad
-            distintos y sus interrelaciones. Este test te ayudará a descubrir tu
-            tipo de personalidad predominante según el Eneagrama.
-
-            <strong>Instrucciones:</strong> Responde cada pregunta usando la
-            escala del 1 al 5, siendo: <br />1 - Muy poco de identificado
-            <br />5 - Totalmente de identificado <br />Elige la opción que mejor
-            describa tu respuesta.
-          </p>
-
-          <button id="start-test-btn">Empezar Test</button>
-        </div>
 
         <div id="alert-message" class="alert" style="display: none"></div>
 
