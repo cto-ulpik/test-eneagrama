@@ -1042,21 +1042,20 @@ function renderCurrentPage() {
   
   quizContainer.innerHTML = `
     <div class="quiz-header">
-      <h2 class="quiz-title">Test de Personalidad Eneagrama</h2>
-      <div class="quiz-mode-indicator">
-        ${modoPrueba ? 
-          `<span class="mode-badge mode-prueba">Modo Prueba (${preguntasPrueba} preguntas)</span>` : 
-          `<span class="mode-badge mode-completo">Test Completo (${allQuestionsData.length} preguntas)</span>`
-        }
+      <div class="quiz-title">
+        <div class="quiz-icon-container">
+          <img src="media/icon_enea.png" alt="Eneagrama" class="quiz-icon">
+        </div>
+        <div class="quiz-title-text">
+          <h2>Test de Motivación</h2>
+          <p class="quiz-subtitle">Descubre tu tipo de motivación</p>
+        </div>
       </div>
-      <div class="pagination-indicator">
-        ${modoPrueba ? 
-          `Pregunta ${currentPage} de ${shuffledQuestions.length}` : 
-          `Página ${currentPage}/${totalPages}`
-        }
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill" style="width: ${progressWidth}%"></div>
+      <div class="quiz-progress">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${progressWidth}%"></div>
+        </div>
+        <span class="progress-text">Página ${currentPage} de ${totalPages}</span>
       </div>
     </div>`;
 
@@ -1450,11 +1449,11 @@ function shareResults() {
   const dominantType = window.calculatedScores ? window.calculatedScores.indexOf(Math.max(...window.calculatedScores)) + 1 : 1;
   const typeNames = ['El Perfeccionista', 'El Ayudador', 'El Triunfador', 'El Individualista', 'El Investigador', 'El Leal', 'El Entusiasta', 'El Desafiador', 'El Pacificador'];
   
-  const shareText = `¡Acabo de completar el test de Eneagrama! Mi tipo predominante es el Tipo ${dominantType} - ${typeNames[dominantType - 1]}. 🎯\n\nDescubre tu tipo en: ${window.location.href}`;
+  const shareText = `¡Acabo de completar el test de motivación Eneagrama! Mi tipo predominante es el Tipo ${dominantType} - ${typeNames[dominantType - 1]}. 🎯\n\nDescubre tu tipo en: ${window.location.href}`;
   
   if (navigator.share) {
     navigator.share({
-      title: 'Mi Resultado del Test de Eneagrama',
+      title: 'Mi Resultado del Test de Motivación Eneagrama',
       text: shareText,
       url: window.location.href
     });
@@ -1497,7 +1496,7 @@ function mostrarResultadosFinales(scores) {
         <div class="results-icon-container">
           <img src="media/icon_enea.png" alt="Eneagrama" class="results-main-icon">
         </div>
-        <h1 class="results-main-title">Tu Análisis de Personalidad</h1>
+        <h1 class="results-main-title">Tu Análisis de Motivación</h1>
         <p class="results-subtitle">Descubre tu esencia y potencial de crecimiento</p>
       </div>
       
@@ -1510,18 +1509,19 @@ function mostrarResultadosFinales(scores) {
               <div class="type-score" style="color: ${typeColors[dominantTypeIndex]};">${scores[dominantTypeIndex]} puntos</div>
             </div>
           </div>
-          <p class="dominant-description">Tu tipo de personalidad predominante según el Eneagrama</p>
+          <p class="dominant-description">Tu tipo de motivación predominante según el Eneagrama</p>
           ${scores[secondaryTypeIndex] > 0 ? `
             <div class="wing-info">
-              <span class="wing-label">Influencia de Ala:</span>
+              <span class="wing-label">Tipo Secundario (Ala):</span>
               <span class="wing-type" style="color: ${typeColors[secondaryTypeIndex]};">Tipo ${secondaryType} - ${typeLabels[secondaryTypeIndex]}</span>
+              <p class="wing-description">Este tipo complementa tu motivación principal y aporta características adicionales a tu forma de ser.</p>
             </div>
           ` : ''}
         </div>
       </div>
       
       <div class="all-results-section">
-        <h3 class="section-title">Mapa Completo de Personalidad</h3>
+        <h3 class="section-title">Mapa Completo de Motivación</h3>
         <p class="section-description">Visualiza tus tendencias en los 9 tipos del Eneagrama</p>
         <div class="results-grid">
           ${scores.map((score, index) => `
@@ -1555,7 +1555,7 @@ function mostrarResultadosFinales(scores) {
       <div class="cta-section">
         <div class="cta-card">
           <h3 class="cta-title">¿Quieres profundizar más?</h3>
-          <p class="cta-description">Este es solo un resultado de muestra. El test completo con 180 preguntas te dará un análisis más preciso y detallado de tu personalidad.</p>
+          <p class="cta-description">Este es solo un resultado de muestra. El test completo con 180 preguntas te dará un análisis más preciso y detallado de tu motivación.</p>
           <div class="cta-buttons">
             <button class="cta-button primary" onclick="restartTest()">
               <span>🔄 Hacer Test Completo</span>
