@@ -1,372 +1,3 @@
-// 2) Inicializar una sola vez
-// const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
-
-// Utilidad para mostrar estado arriba del wrapper
-function paintStatus(msg, color) {
-  const wrapper = document.getElementById("eneagram-test-wrapper");
-  if (!wrapper) return;
-  let el = document.getElementById("firestore-conn-msg");
-  if (!el) {
-    el = document.createElement("div");
-    el.id = "firestore-conn-msg";
-    el.style.fontSize = "0.95em";
-    el.style.marginBottom = "8px";
-    wrapper.insertBefore(el, wrapper.firstChild);
-  }
-  el.style.color = color;
-  el.textContent = msg;
-}
-
-// 3) Autenticar (anónimo) para pasar reglas que exigen auth
-//    Si luego usarás email/password o Google, cambia esta parte.
-auth
-  .signInAnonymously()
-  .then(() => {
-    // Autenticación exitosa
-  })
-  .catch((e) => {
-    console.error("Error Auth:", e);
-    paintStatus(
-      "✖ Error de autenticación: " + (e.code || e.message),
-      "#e53935"
-    );
-  });
-
-// 4) Al cargar el DOM, probar lectura
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    // Esperar a que el usuario esté autenticado
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        const uid = user.uid;
-        // Si tus reglas SOLO permiten leer del propietario, usa una consulta filtrada:
-        const q = db
-          .collection("eneagrama")
-          .where("user_id", "==", uid)
-          .limit(1);
-        await q.get();
-        // paintStatus("✔ Conectado a Firestore", "#388e3c");
-        console.log("Conexión a Firestore exitosa");
-      }
-    });
-  } catch (error) {
-    console.error("Firestore test error:", error);
-    if (
-      error &&
-      (error.code === "permission-denied" || error.code === "unauthenticated")
-    ) {
-      paintStatus(
-        "⚠ Conectado, pero las reglas bloquearon la lectura (permission-denied).",
-        "#f57c00"
-      );
-    } else {
-      paintStatus(
-        "✖ Error de conexión a Firestore: " + (error.code || error.message),
-        "#e53935"
-      );
-    }
-  }
-});
-
-// 5) Guardar resultado (incluye user_id para cumplir reglas)
-let firestoreDocRef = null;
-async function crearDocumentoFirestore(email) {
-  const uid = auth.currentUser ? auth.currentUser.uid : null;
-  const payload = {
-    email,
-    user_id: uid,
-    consentimiento: true,
-    fecha_creacion: firebase.firestore.FieldValue.serverTimestamp(),
-    version_test: "v1.0",
-    respuestas: {},
-  };
-  firestoreDocRef = await db.collection("eneagrama").add(payload);
-}
-
-async function actualizarRespuestasFirestore() {
-  if (!firestoreDocRef) return;
-  const respuestasObj = {};
-  userResponses.forEach((resp, idx) => {
-    if (resp !== null) {
-      respuestasObj[`p${idx + 1}`] = resp.toString();
-    }
-  });
-  await firestoreDocRef.update({ respuestas: respuestasObj });
-}
-
-async function actualizarResultadoFirestore(resultado) {
-  if (!firestoreDocRef) return;
-  await firestoreDocRef.update({ resultado });
-}
-
-// Variables para el nuevo flujo
-let emailFormContainer = null;
-let submitEmailBtn = null;
-let emailValido = false;
-
-// Inicializar elementos del formulario de email
-setTimeout(() => {
-  emailFormContainer = document.getElementById("email-form-container");
-  submitEmailBtn = document.getElementById("submit-email-btn");
-  const emailInput = document.getElementById("user-email");
-  const emailForm = document.getElementById("email-form");
-  
-  console.log("🔍 Inicializando formulario de email:");
-  console.log("emailFormContainer:", !!emailFormContainer);
-  console.log("submitEmailBtn:", !!submitEmailBtn);
-  console.log("emailInput:", !!emailInput);
-  console.log("emailForm:", !!emailForm);
-  
-  if (emailInput && submitEmailBtn) {
-    submitEmailBtn.disabled = true;
-    
-    emailInput.addEventListener("input", function () {
-      const valor = emailInput.value.trim();
-      const esValido = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(valor);
-      emailValido = esValido;
-      if (esValido) {
-        emailInput.style.borderColor = "#43e97b";
-        submitEmailBtn.disabled = false;
-        hideFormError(); // Limpiar mensaje de error cuando el email es válido
-      } else {
-        emailInput.style.borderColor = valor.length > 0 ? "#ff6b6b" : "#e2e8f0";
-        submitEmailBtn.disabled = true;
-      }
-    });
-    
-    // Validación inicial del email (por si ya tiene valor)
-    const valorInicial = emailInput.value.trim();
-    const esValidoInicial = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(valorInicial);
-    emailValido = esValidoInicial;
-    console.log("🔍 Validación inicial del email:");
-    console.log("📧 Valor inicial:", valorInicial);
-    console.log("✅ Email válido inicial:", esValidoInicial);
-    console.log("🔒 Botón deshabilitado:", submitEmailBtn.disabled);
-    
-    // Habilitar el botón siempre para permitir validación
-    submitEmailBtn.disabled = false;
-    console.log("🔓 Botón habilitado para permitir validación");
-    
-    // Limpiar errores cuando el usuario interactúa con los checkboxes
-    const consentimientoCheckbox = document.getElementById("consentimiento-checkbox");
-    if (consentimientoCheckbox) {
-      consentimientoCheckbox.addEventListener("change", function() {
-        const label = this.closest('.checkbox-label');
-        if (label && this.checked) {
-          label.classList.remove('error');
-          hideFormError(); // Limpiar mensaje de error cuando se marca el checkbox
-        }
-      });
-    }
-    
-    // Limpiar errores cuando el usuario interactúa con el checkbox de promociones
-    const promocionesCheckbox = document.getElementById("promociones-checkbox");
-    if (promocionesCheckbox) {
-      promocionesCheckbox.addEventListener("change", function() {
-        const label = this.closest('.checkbox-label');
-        if (label && this.checked) {
-          label.classList.remove('error');
-          hideFormError(); // Limpiar mensaje de error cuando se marca el checkbox
-        }
-      });
-    }
-    
-    // Solo usar evento de click directo al botón - sin formulario
-    if (submitEmailBtn) {
-      console.log("✅ Agregando evento click al botón de submit");
-      submitEmailBtn.addEventListener("click", async function(e) {
-        e.preventDefault();
-        console.log("=== VER RESULTADOS PRESIONADO (BUTTON CLICK) ===");
-        await handleEmailSubmit();
-      });
-    }
-    
-    // Función para manejar el envío del formulario - lógica similar a botones anterior/siguiente
-    async function handleEmailSubmit() {
-      console.log("🔍 Iniciando validación del formulario de email");
-      console.log("📧 Email input actual:", emailInput ? emailInput.value : "emailInput no encontrado");
-      console.log("🔒 Botón deshabilitado:", submitEmailBtn ? submitEmailBtn.disabled : "submitEmailBtn no encontrado");
-      
-      // Ocultar mensajes de error anteriores
-      hideFormError();
-      
-      // Validar email - similar a areCurrentPageQuestionsAnswered()
-      const emailValue = emailInput.value.trim();
-      const esEmailValido = emailValue.length > 0 && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailValue);
-      
-      console.log("📧 Email value:", emailValue);
-      console.log("📧 Email length:", emailValue.length);
-      console.log("✅ Email valid:", esEmailValido);
-      
-      if (!esEmailValido) {
-        console.log("❌ Email validation failed, showing error");
-        if (emailValue.length === 0) {
-          const errorMsg = "⚠️ Necesitas ingresar un email para ver tus resultados del Eneagrama.";
-          showFormError(errorMsg);
-          
-          // Crear mensaje de error dinámico como respaldo adicional
-          setTimeout(() => {
-            const errorDiv = document.getElementById("form-error-message");
-            const isVisible = errorDiv && window.getComputedStyle(errorDiv).display !== "none";
-            if (!isVisible) {
-              console.log("🔄 Mensaje inline no visible, creando mensaje dinámico");
-              createDynamicErrorMessage(errorMsg);
-            }
-          }, 200);
-        } else {
-          const errorMsg = "⚠️ Necesitas ingresar un email válido para ver tus resultados del Eneagrama.";
-          showFormError(errorMsg);
-          
-          // Crear mensaje de error dinámico como respaldo adicional
-          setTimeout(() => {
-            const errorDiv = document.getElementById("form-error-message");
-            const isVisible = errorDiv && window.getComputedStyle(errorDiv).display !== "none";
-            if (!isVisible) {
-              console.log("🔄 Mensaje inline no visible, creando mensaje dinámico");
-              createDynamicErrorMessage(errorMsg);
-            }
-          }, 200);
-        }
-        emailInput.focus();
-        return;
-      }
-      
-      // Validar términos y condiciones - similar a areCurrentPageQuestionsAnswered()
-      const consentimientoCheckbox = document.getElementById("consentimiento-checkbox");
-      const consentimientoLabel = consentimientoCheckbox ? consentimientoCheckbox.closest('.checkbox-label') : null;
-      
-      console.log("📋 consentimientoCheckbox found:", !!consentimientoCheckbox);
-      console.log("☑️ consentimientoCheckbox checked:", consentimientoCheckbox ? consentimientoCheckbox.checked : "not found");
-      
-      if (!consentimientoCheckbox || !consentimientoCheckbox.checked) {
-        console.log("❌ Terms validation failed, showing error");
-        const errorMsg = "⚠️ Necesitas marcar los términos y condiciones para ver tus resultados del Eneagrama.";
-        showFormError(errorMsg);
-        
-        // Respaldo temporal con alert para confirmar que la validación funciona
-        setTimeout(() => {
-          const errorDiv = document.getElementById("form-error-message");
-          const isVisible = errorDiv && window.getComputedStyle(errorDiv).display !== "none";
-          if (!isVisible) {
-            console.log("🔄 Mensaje inline no visible, usando alert como respaldo");
-            alert(errorMsg);
-          }
-        }, 500);
-        
-        // Resaltar el checkbox con error
-        if (consentimientoLabel) {
-          consentimientoLabel.classList.add('error');
-          setTimeout(() => {
-            consentimientoLabel.classList.remove('error');
-          }, 2000);
-        }
-        
-        if (consentimientoCheckbox) {
-          consentimientoCheckbox.focus();
-        }
-        return;
-      }
-      
-      console.log("✅ Términos y condiciones validados correctamente");
-      
-      // Validar promociones - también obligatorio
-      const promocionesCheckbox = document.getElementById("promociones-checkbox");
-      const promocionesLabel = promocionesCheckbox ? promocionesCheckbox.closest('.checkbox-label') : null;
-      
-      console.log("📧 promocionesCheckbox found:", !!promocionesCheckbox);
-      console.log("☑️ promocionesCheckbox checked:", promocionesCheckbox ? promocionesCheckbox.checked : "not found");
-      
-      if (!promocionesCheckbox || !promocionesCheckbox.checked) {
-        console.log("❌ Promotions validation failed, showing error");
-        const errorMsg = "⚠️ Necesitas marcar la autorización de promociones para ver tus resultados del Eneagrama.";
-        showFormError(errorMsg);
-        
-        // Respaldo temporal con alert para confirmar que la validación funciona
-        setTimeout(() => {
-          const errorDiv = document.getElementById("form-error-message");
-          const isVisible = errorDiv && window.getComputedStyle(errorDiv).display !== "none";
-          if (!isVisible) {
-            console.log("🔄 Mensaje inline no visible, usando alert como respaldo");
-            alert(errorMsg);
-          }
-        }, 500);
-        
-        // Resaltar el checkbox con error
-        if (promocionesLabel) {
-          promocionesLabel.classList.add('error');
-          setTimeout(() => {
-            promocionesLabel.classList.remove('error');
-          }, 2000);
-        }
-        
-        if (promocionesCheckbox) {
-          promocionesCheckbox.focus();
-        }
-        return;
-      }
-      
-      console.log("✅ Promociones validadas correctamente");
-      
-      // Si llegamos aquí, todo está correcto - similar a como se procesa en el quiz
-      console.log("🎉 Todas las validaciones pasaron, procesando resultados...");
-      
-      // Limpiar errores si todo está bien
-      if (consentimientoLabel) {
-        consentimientoLabel.classList.remove('error');
-      }
-      if (promocionesLabel) {
-        promocionesLabel.classList.remove('error');
-      }
-      
-      hideFormError();
-      await procesarResultadosConEmail();
-    }
-    
-    // Manejar botón cancelar
-    const cancelEmailBtn = document.getElementById("cancel-email-btn");
-    if (cancelEmailBtn) {
-      cancelEmailBtn.addEventListener("click", function() {
-        // Limpiar mensaje de error
-        hideFormError();
-        
-        // Ocultar formulario de email
-        if (emailFormContainer) {
-          emailFormContainer.style.display = "none";
-        }
-        
-        // Regresar a la última página de respuestas
-        if (modoPrueba) {
-          // En modo prueba, mostrar todas las preguntas
-          currentPage = 1;
-          renderCurrentPage();
-          updatePaginationButtons();
-        } else {
-          // En modo completo, ir a la última página
-          const totalPages = Math.ceil(shuffledQuestions.length / questionsPerPage);
-          currentPage = totalPages;
-          renderCurrentPage();
-          updatePaginationButtons();
-        }
-        
-        // Mostrar el quiz nuevamente
-        if (quizForm) {
-          quizForm.style.display = "block";
-        }
-        
-        // Mostrar controles de paginación
-        if (paginationControlsDiv) {
-          paginationControlsDiv.style.display = "block";
-        }
-        
-        // Scroll al principio de la página
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-    }
-  }
-}, 0);
-// Seleccionar elementos DENTRO del wrapper para evitar conflictos
 const wrapper = document.getElementById("eneagram-test-wrapper");
 if (!wrapper) {
   console.error("Contenedor principal #eneagram-test-wrapper no encontrado.");
@@ -384,7 +15,56 @@ const startTestContainer = wrapper.querySelector("#start-test-container");
 const startTestBtn = wrapper.querySelector("#start-test-btn");
 const typeDescriptions = wrapper.querySelectorAll(".type-description");
 const restartTestBtn = wrapper.querySelector("#restart-test-btn"); // Corrección aquí
+const emailFormContainer = wrapper.querySelector("#email-form-container");
 let resultsChart = null;
+
+// Verificar conexión de Firebase al inicio
+function verificarConexionFirebase() {
+  try {
+    if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+      const db = firebase.firestore();
+      console.log("🔥 Firebase inicializado correctamente");
+      console.log("📊 Proyecto:", firebase.app().options.projectId);
+      console.log("✅ Conexión a Firestore establecida");
+      
+      // Verificar permisos con una operación de lectura en la colección eneagrama
+      db.collection('eneagrama').limit(1).get()
+        .then(() => {
+          console.log("✅ Permisos de lectura verificados en colección eneagrama");
+          console.log("🎉 Firebase completamente funcional");
+        })
+        .catch((error) => {
+          if (error.code === 'permission-denied') {
+            console.error("❌ ERROR: Permisos de Firestore insuficientes");
+            console.error("💡 Solución: Actualiza las reglas de Firestore para permitir escritura");
+            console.error("📋 Reglas recomendadas:");
+            console.error(`
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /eneagrama/{document} {
+      allow read, write: if true;
+    }
+  }
+}
+            `);
+      } else {
+            console.warn("⚠️ Advertencia de permisos:", error.message);
+          }
+        });
+        } else {
+      console.error("❌ Firebase no está inicializado");
+    }
+  } catch (error) {
+    console.error("❌ Error al verificar Firebase:", error);
+  }
+}
+
+// Ejecutar verificación al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+  // Esperar un poco para que Firebase se inicialice completamente
+  setTimeout(verificarConexionFirebase, 1000);
+});
 
 const numTypes = 9;
 
@@ -930,9 +610,8 @@ const questionsPerPage = 20; // O 20 si prefieres menos páginas con 180 pregunt
 let shuffledQuestions = [];
 let userResponses = [];
 
-// Modo de prueba - cambiar a false para test completo
-let modoPrueba = false; // Modo prueba desactivado
-const preguntasPrueba = 5; // Solo 5 preguntas para pruebas
+// Test completo - 180 preguntas
+const preguntasCompletas = 180;
 
 const prevBtn = document.createElement("button");
 prevBtn.type = "button";
@@ -957,17 +636,10 @@ function initializeQuiz() {
     return;
   }
 
-  // Inicializar preguntas y respuestas según el modo
-  if (modoPrueba) {
-    // Modo prueba: solo unas pocas preguntas
-    shuffledQuestions = [...allQuestionsData].slice(0, preguntasPrueba);
-    console.log(`Modo prueba: ${preguntasPrueba} preguntas`);
-  } else {
-    // Modo completo: todas las preguntas
+  // Inicializar preguntas y respuestas - test completo
   shuffledQuestions = [...allQuestionsData];
   shuffleArray(shuffledQuestions);
-    console.log(`Modo completo: ${allQuestionsData.length} preguntas`);
-  }
+  console.log(`Test completo: ${allQuestionsData.length} preguntas`);
   
   userResponses = Array(shuffledQuestions.length).fill(null);
 
@@ -1014,10 +686,7 @@ function initializeQuiz() {
       return;
     }
 
-    // Guardar/actualizar respuestas parciales en Firestore (solo en modo completo)
-    if (!modoPrueba) {
-    await actualizarRespuestasFirestore();
-    }
+    // Solo avanzar a la siguiente página, no guardar aún
 
     const totalPages = Math.ceil(shuffledQuestions.length / questionsPerPage);
     if (currentPage < totalPages) {
@@ -1037,23 +706,23 @@ function initializeQuiz() {
 function renderCurrentPage() {
   if (!quizContainer) return;
   
-  const totalPages = modoPrueba ? 1 : Math.ceil(shuffledQuestions.length / questionsPerPage);
-  const progressWidth = modoPrueba ? 100 : (currentPage / totalPages) * 100;
+  const totalPages = Math.ceil(shuffledQuestions.length / questionsPerPage);
+  const progressWidth = (currentPage / totalPages) * 100;
   
   quizContainer.innerHTML = `
     <div class="quiz-header">
       <div class="quiz-title">
         <div class="quiz-icon-container">
           <img src="media/icon_enea.png" alt="Eneagrama" class="quiz-icon">
-        </div>
+      </div>
         <div class="quiz-title-text">
           <h2>Test de Motivación</h2>
           <p class="quiz-subtitle">Descubre tu tipo de motivación</p>
-        </div>
+      </div>
       </div>
       <div class="quiz-progress">
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: ${progressWidth}%"></div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: ${progressWidth}%"></div>
         </div>
         <span class="progress-text">Página ${currentPage} de ${totalPages}</span>
       </div>
@@ -1061,15 +730,9 @@ function renderCurrentPage() {
 
   let startIdx, endIdx;
   
-  if (modoPrueba) {
-    // En modo prueba, mostrar todas las preguntas de una vez
-    startIdx = 0;
-    endIdx = shuffledQuestions.length;
-  } else {
-    // En modo completo, usar paginación normal
+  // Usar paginación normal
     startIdx = (currentPage - 1) * questionsPerPage;
     endIdx = Math.min(startIdx + questionsPerPage, shuffledQuestions.length);
-  }
 
   for (let i = startIdx; i < endIdx; i++) {
     const question = shuffledQuestions[i];
@@ -1178,18 +841,7 @@ function renderCurrentPage() {
 function updatePaginationButtons() {
   if (!prevBtn || !nextBtn || !submitBtn) return;
 
-  if (modoPrueba) {
-    // En modo prueba, solo mostrar el botón de enviar
-    prevBtn.style.display = "none";
-    nextBtn.style.display = "none";
-    submitBtn.style.display = "block";
-    
-    const pagBtnsWrapper = paginationControlsDiv.querySelector("div");
-    if (pagBtnsWrapper) {
-      pagBtnsWrapper.innerHTML = "";
-      pagBtnsWrapper.appendChild(submitBtn);
-    }
-  } else {
+  // Mostrar botones de paginación y envío
     // Modo completo con paginación normal
   const totalPages = Math.ceil(shuffledQuestions.length / questionsPerPage);
   prevBtn.disabled = currentPage === 1;
@@ -1218,22 +870,15 @@ function updatePaginationButtons() {
       nextBtn.style.display = "inline-block";
     }
     submitBtn.style.display = "none";
-    }
   }
 }
 
 function areCurrentPageQuestionsAnswered() {
   let startIdx, endIdx;
   
-  if (modoPrueba) {
-    // En modo prueba, verificar todas las preguntas
-    startIdx = 0;
-    endIdx = shuffledQuestions.length;
-  } else {
-    // En modo completo, verificar solo la página actual
+  // Verificar solo la página actual
     startIdx = (currentPage - 1) * questionsPerPage;
     endIdx = Math.min(startIdx + questionsPerPage, shuffledQuestions.length);
-  }
 
   for (let i = startIdx; i < endIdx; i++) {
     if (userResponses[i] === null) {
@@ -1253,19 +898,14 @@ function updateSubmitButtonVisibility() {
 
   const allAnswered = userResponses.every((response) => response !== null);
   
-  if (modoPrueba) {
-    // En modo prueba, mostrar el botón cuando todas las preguntas estén respondidas
-    if (allAnswered) {
-      submitBtn.style.display = "block";
-    }
-  } else {
-    // En modo completo, mostrar el botón solo en la última página
+  // Mostrar el botón solo en la última página cuando todas estén respondidas
   if (
     allAnswered &&
     currentPage === Math.ceil(shuffledQuestions.length / questionsPerPage)
   ) {
     submitBtn.style.display = "block";
-    }
+  } else {
+    submitBtn.style.display = "none";
   }
 }
 
@@ -1346,31 +986,18 @@ function displayResults(scores) {
     const descriptionElement = document.getElementById("email-form-description");
     const privacyElement = document.getElementById("privacy-note");
     
-    if (modoPrueba) {
-      if (titleElement) {
-        titleElement.innerHTML = `
-          <div style="display: flex; align-items: center; justify-content: center;">
-            <img src="media/icon_enea.png" alt="Eneagrama" style="width: 80px; height: 80px;">
-          </div>
-        `;
-      }
-      if (descriptionElement) descriptionElement.textContent = "Ingresa tu email para ver el resultado de tu test de prueba (no se guardará en la base de datos).";
-      if (privacyElement) {
-        privacyElement.innerHTML = '<em>Modo prueba: Tu email no se guardará en la base de datos. Solo se usa para mostrar los resultados.</em>';
-      }
-    } else {
-      if (titleElement) {
-        titleElement.innerHTML = `
-          <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
-            <img src="media/icon_enea.png" alt="Eneagrama" style="width: 40px; height: 40px;">
-            <span>Para ver tus resultados</span>
-          </div>
-        `;
-      }
+    // Configuración para test completo
+    if (titleElement) {
+      titleElement.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+          <img src="media/icon_enea.png" alt="Eneagrama" style="width: 40px; height: 40px;">
+          <span>Para ver tus resultados</span>
+        </div>
+      `;
+    }
       if (descriptionElement) descriptionElement.textContent = "Necesitamos tu email para enviarte un análisis personalizado de tu personalidad.";
       if (privacyElement) {
         privacyElement.innerHTML = '<em>Este test es personalizado para ti. Usamos tu correo solo para identificarte y mejorar tu experiencia. No compartimos tus datos.</em>';
-      }
     }
     
     emailFormContainer.style.display = "block";
@@ -1383,7 +1010,7 @@ function displayResults(scores) {
       console.log("🔍 Verificando formulario después de mostrarlo:");
       console.log("emailFormCheck:", !!emailFormCheck);
       console.log("submitBtnCheck:", !!submitBtnCheck);
-      console.log("modoPrueba:", modoPrueba);
+      console.log("Modo: Test Completo");
     }, 100);
   }
 }
@@ -1398,12 +1025,15 @@ async function procesarResultadosConEmail() {
     emailDisplay.style.display = "block";
   }
   
-  if (modoPrueba) {
-    // En modo prueba, no guardar en Firestore pero procesar el email
-    console.log("Modo prueba: procesando email sin guardar en Firestore");
-  } else {
-    // En modo completo, crear documento en Firestore
-    await crearDocumentoFirestore(emailInput.value);
+  // Guardar en la colección eneagrama con formato completo
+  console.log("💾 Guardando en colección eneagrama...");
+  try {
+    // Guardar documento completo en colección eneagrama
+    await guardarEnEneagrama(emailInput.value);
+    console.log("✅ Documento guardado exitosamente en eneagrama");
+  } catch (error) {
+    console.error("❌ Error al guardar en eneagrama:", error);
+    throw error;
   }
   
   // Ocultar formulario de email
@@ -1467,6 +1097,219 @@ function shareResults() {
   }
 }
 
+// Función para manejar el formulario de contacto
+function handleContactForm(event) {
+  event.preventDefault();
+  
+  const whatsappInput = document.getElementById('whatsapp-input');
+  const countryCodeSelect = document.getElementById('country-code');
+  const formMessage = document.getElementById('form-message');
+  const contactButton = document.querySelector('.contact-button');
+  
+  const whatsappNumber = whatsappInput.value.trim();
+  const countryCode = countryCodeSelect ? countryCodeSelect.value : '+593';
+  
+  if (!whatsappNumber) {
+    showFormMessage('Por favor, ingresa tu número de WhatsApp', 'error');
+    return;
+  }
+  
+  // Combinar código de país con el número
+  const fullPhoneNumber = countryCode + whatsappNumber;
+  
+  // Validar formato básico de número (sin el +)
+  const phoneRegex = /^[1-9][\d]{6,14}$/;
+  if (!phoneRegex.test(whatsappNumber.replace(/\s/g, ''))) {
+    showFormMessage('Por favor, ingresa un número de WhatsApp válido', 'error');
+    return;
+  }
+  
+  // Mostrar estado de carga
+  contactButton.innerHTML = '<span>⏳ Enviando...</span>';
+  contactButton.disabled = true;
+  
+  // Actualizar documento existente en colección eneagrama
+  const db = firebase.firestore();
+  
+  // Buscar el documento más reciente del usuario por email
+  const emailInput = document.getElementById('user-email');
+  const userEmail = emailInput ? emailInput.value : '';
+  
+  if (!userEmail) {
+    showFormMessage('Error: No se encontró el email del usuario', 'error');
+    contactButton.innerHTML = '<span>📱 Enviar WhatsApp</span>';
+    contactButton.disabled = false;
+    return;
+  }
+  
+  // Buscar el documento más reciente del usuario
+  db.collection('eneagrama')
+    .where('email', '==', userEmail)
+    .orderBy('fecha_creacion', 'desc')
+    .limit(1)
+    .get()
+    .then((querySnapshot) => {
+      if (querySnapshot.empty) {
+        throw new Error('No se encontró el documento del usuario');
+      }
+      
+      // Obtener el documento más reciente
+      const doc = querySnapshot.docs[0];
+      
+      // Actualizar el documento agregando el campo movil
+      return doc.ref.update({
+        movil: fullPhoneNumber,
+        fecha_actualizacion: new Date().toLocaleString('es-ES', {
+          timeZone: 'America/Guayaquil',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        })
+      });
+    })
+    .then(() => {
+      console.log('✅ Número de WhatsApp actualizado en documento eneagrama');
+      
+      // Mostrar mensaje de éxito con ícono (persistente)
+      showFormMessage('✅ ¡Guardado exitoso! Te contactaremos pronto por WhatsApp.', 'success', true);
+      
+      // Limpiar el input
+      whatsappInput.value = '';
+      
+      // Bloquear el botón permanentemente y cambiar su apariencia
+      contactButton.innerHTML = '<span>✅ Enviado</span>';
+      contactButton.disabled = true;
+      contactButton.style.background = 'linear-gradient(135deg, #4caf50, #2e7d32)';
+      contactButton.style.cursor = 'not-allowed';
+      contactButton.style.opacity = '0.8';
+      
+      // Deshabilitar el input también
+      whatsappInput.disabled = true;
+      whatsappInput.style.opacity = '0.6';
+      whatsappInput.style.cursor = 'not-allowed';
+      
+      // Deshabilitar el selector de país
+      const countrySelect = document.getElementById('country-code');
+      if (countrySelect) {
+        countrySelect.disabled = true;
+        countrySelect.style.opacity = '0.6';
+        countrySelect.style.cursor = 'not-allowed';
+      }
+    })
+    .catch((error) => {
+      console.error('Error al actualizar documento eneagrama:', error);
+      showFormMessage('❌ Error al enviar. Intenta nuevamente.', 'error');
+      
+      // Restaurar el botón en caso de error
+      contactButton.innerHTML = '<span>📱 Enviar WhatsApp</span>';
+      contactButton.disabled = false;
+      contactButton.style.background = 'linear-gradient(135deg, #25d366, #128c7e)';
+      contactButton.style.cursor = 'pointer';
+      contactButton.style.opacity = '1';
+    });
+}
+
+// Función para mostrar mensajes del formulario
+function showFormMessage(message, type, persistent = false) {
+  const formMessage = document.getElementById('form-message');
+  formMessage.textContent = message;
+  formMessage.className = `form-message ${type}`;
+  
+  // Solo limpiar mensaje después de 5 segundos si no es persistente
+  if (!persistent) {
+    setTimeout(() => {
+      formMessage.textContent = '';
+      formMessage.className = 'form-message';
+    }, 5000);
+  }
+}
+
+// Función para convertir respuestas a formato JSON con p1, p2, etc.
+function convertirRespuestasAFormatoJSON() {
+  const respuestasJSON = {};
+  userResponses.forEach((respuesta, index) => {
+    respuestasJSON[`p${index + 1}`] = respuesta.toString();
+  });
+  return respuestasJSON;
+}
+
+// Función para guardar en la colección eneagrama
+async function guardarEnEneagrama(email) {
+  try {
+    console.log("🔗 Conectando a Firebase...");
+    const db = firebase.firestore();
+    console.log("✅ Conexión a Firebase establecida");
+    
+    // Convertir respuestas al formato p1, p2, etc.
+    const respuestasJSON = convertirRespuestasAFormatoJSON();
+    
+    // Calcular resultado
+    const scores = calculateScores();
+    const maxScore = Math.max(...scores);
+    const dominantTypeIndex = scores.indexOf(maxScore);
+    
+    // Crear documento con la estructura completa
+    const documentoEneagrama = {
+      consentimiento: true,
+      email: email,
+      fecha_creacion: new Date().toLocaleString('es-ES', {
+        timeZone: 'America/Guayaquil',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      }),
+      respuestas: respuestasJSON,
+      resultado: {
+        descripcion: obtenerDescripcionTipo(dominantTypeIndex + 1),
+        puntaje: maxScore,
+        tipo: (dominantTypeIndex + 1).toString()
+      },
+      user_id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      version_test: "v1.0"
+    };
+    
+    console.log("📊 Documento a guardar:", documentoEneagrama);
+    
+    // Guardar en la colección eneagrama
+    await db.collection('eneagrama').add(documentoEneagrama);
+    
+    console.log('✅ Documento guardado en colección eneagrama');
+    return true;
+  } catch (error) {
+    console.error('❌ Error al guardar en eneagrama:', error);
+    throw error;
+  }
+}
+
+// Función para actualizar resultado en Firestore
+async function actualizarResultadoFirestore(resultado) {
+  try {
+    const db = firebase.firestore();
+    
+    const resultadoData = {
+      ...resultado,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      scores: window.calculatedScores || []
+    };
+    
+    await db.collection('test_resultados').add(resultadoData);
+    console.log('✅ Resultado guardado en Firestore');
+  } catch (error) {
+    console.error('❌ Error al guardar resultado:', error);
+    throw error;
+  }
+}
+
 // Función para mostrar los resultados finales
 function mostrarResultadosFinales(scores) {
   if (!resultsTextDiv || !resultsContainer) return;
@@ -1495,10 +1338,10 @@ function mostrarResultadosFinales(scores) {
       <div class="results-header">
         <div class="results-icon-container">
           <img src="media/icon_enea.png" alt="Eneagrama" class="results-main-icon">
-        </div>
+          </div>
         <h1 class="results-main-title">Tu Análisis de Motivación</h1>
         <p class="results-subtitle">Descubre tu esencia y potencial de crecimiento</p>
-      </div>
+        </div>
       
       <div class="dominant-result">
         <div class="dominant-type-card" style="background: linear-gradient(135deg, ${typeColors[dominantTypeIndex]}20, ${typeColors[dominantTypeIndex]}10); border-left: 4px solid ${typeColors[dominantTypeIndex]};">
@@ -1507,7 +1350,7 @@ function mostrarResultadosFinales(scores) {
             <div class="type-info">
               <div class="type-number" style="color: ${typeColors[dominantTypeIndex]};">Tipo ${dominantType} - ${typeLabels[dominantTypeIndex]}</div>
               <div class="type-score" style="color: ${typeColors[dominantTypeIndex]};">${scores[dominantTypeIndex]} puntos</div>
-            </div>
+      </div>
           </div>
           <p class="dominant-description">Tu tipo de motivación predominante según el Eneagrama</p>
           ${scores[secondaryTypeIndex] > 0 ? `
@@ -1552,6 +1395,40 @@ function mostrarResultadosFinales(scores) {
         </div>
       </div>
       
+      <div class="contact-section">
+        <div class="contact-card">
+          <h3 class="contact-title">¿Necesitas más información?</h3>
+          <p class="contact-description">Si deseas mayor información sobre tu tipo de motivación, ayuda personalizada o coaching, déjanos tu WhatsApp y te contactaremos.</p>
+          <form class="contact-form" id="contact-form">
+            <div class="form-group">
+              <div class="phone-input-container">
+                <select id="country-code" class="country-select">
+                  <option value="+593">🇪🇨 Ecuador (+593)</option>
+                  <option value="+1">🇺🇸 Estados Unidos (+1)</option>
+                  <option value="+52">🇲🇽 México (+52)</option>
+                  <option value="+57">🇨🇴 Colombia (+57)</option>
+                  <option value="+51">🇵🇪 Perú (+51)</option>
+                  <option value="+56">🇨🇱 Chile (+56)</option>
+                  <option value="+54">🇦🇷 Argentina (+54)</option>
+                  <option value="+55">🇧🇷 Brasil (+55)</option>
+                  <option value="+34">🇪🇸 España (+34)</option>
+                  <option value="+49">🇩🇪 Alemania (+49)</option>
+                  <option value="+33">🇫🇷 Francia (+33)</option>
+                  <option value="+44">🇬🇧 Reino Unido (+44)</option>
+                </select>
+                <input type="tel" id="whatsapp-input" placeholder="Número de WhatsApp" required>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="contact-button">
+                <span>📱 Enviar WhatsApp</span>
+              </button>
+            </div>
+            <div class="form-message" id="form-message"></div>
+          </form>
+        </div>
+      </div>
+      
       <div class="cta-section">
         <div class="cta-card">
           <h3 class="cta-title">¿Quieres profundizar más?</h3>
@@ -1581,6 +1458,12 @@ function mostrarResultadosFinales(scores) {
         "No se encontraron descripciones de tipos para mostrar/ocultar"
       );
     }
+    
+    // Agregar event listener al formulario de contacto
+    const contactForm = document.getElementById('contact-form');
+    if (contactForm) {
+      contactForm.addEventListener('submit', handleContactForm);
+    }
 
     // Efecto de confetti mejorado
     confetti({
@@ -1605,14 +1488,7 @@ function mostrarResultadosFinales(scores) {
     }, 500);
 
     // Mensaje final diferente según el modo
-    const finalMessage = modoPrueba ? 
-      `<p style="color:#43e97b;font-weight:bold;margin-top:15px;">
-          ¡Resultado de prueba! Para un análisis completo, haz el test completo con 180 preguntas. 🎯
-      </p>
-      <div class="final-message" style="margin-top:20px;font-size:1.1em;">
-          Este es solo un resultado de muestra con 5 preguntas. El test completo te dará un análisis más preciso de tu personalidad.
-      </div>` :
-      `<p style="color:#43e97b;font-weight:bold;margin-top:15px;">
+    const finalMessage = `<p style="color:#43e97b;font-weight:bold;margin-top:15px;">
                 ¡Qué lindo ser quien eres! ¡Celebra tu tipo de personalidad único! 🎉
             </p>
             <div class="final-message" style="margin-top:20px;font-size:1.1em;">
@@ -1979,8 +1855,8 @@ if (restartTestBtn) {
 // Evento para iniciar test
 if (startTestBtn) {
   startTestBtn.addEventListener("click", function () {
-    // Siempre usar test completo (modoPrueba ya está configurado como false)
-    console.log(`Modo configurado: ${modoPrueba ? 'Prueba' : 'Completo'}`);
+    // Test completo activado
+    console.log('Modo configurado: Test Completo');
     initializeQuiz();
   });
 } else {
@@ -1993,32 +1869,72 @@ if (startTestBtn) {
 if (quizForm) {
   quizForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!areCurrentPageQuestionsAnswered()) return;
+    console.log("🚀 Iniciando envío del formulario...");
+    console.log("📊 Modo: Test Completo");
+    console.log("📝 Respuestas del usuario:", userResponses);
+    console.log("❓ Total de preguntas:", shuffledQuestions.length);
+    
+    if (!areCurrentPageQuestionsAnswered()) {
+      console.log("❌ Preguntas sin responder en la página actual");
+      return;
+    }
+    
     const scores = calculateScores();
+    console.log("🎯 Puntuaciones calculadas:", scores);
+    
     if (scores) {
-      if (modoPrueba) {
-        // En modo prueba, no guardar en Firestore
-        console.log("Modo prueba: saltando guardado en Firestore");
+      // Guardar puntuaciones calculadas para uso posterior
+      window.calculatedScores = scores;
+      console.log("🎯 Puntuaciones calculadas y guardadas:", scores);
+      
+      // Mostrar formulario de email para obtener datos del usuario
         displayResults(scores);
       } else {
-        // En modo completo, guardar respuestas finales y resultado en Firestore
-      await actualizarRespuestasFirestore();
-      // Modelo resultado: { tipo, puntaje, descripcion }
-      const maxScore = Math.max(...scores);
-      const dominantTypeIndex = scores.indexOf(maxScore);
-      const resultado = {
-        tipo: (dominantTypeIndex + 1).toString(),
-        puntaje: maxScore,
-        descripcion: obtenerDescripcionTipo(dominantTypeIndex + 1),
-      };
-      await actualizarResultadoFirestore(resultado);
-      displayResults(scores);
-      }
+      console.log("❌ No se pudieron calcular las puntuaciones");
     }
   });
 } else {
   console.error("Elemento quizForm no encontrado.");
 }
+
+// Event listener para el botón "Ver Mis Resultados" del formulario de email
+document.addEventListener('DOMContentLoaded', function() {
+  const submitEmailBtn = document.getElementById('submit-email-btn');
+  if (submitEmailBtn) {
+    submitEmailBtn.addEventListener('click', async function(event) {
+      event.preventDefault();
+      
+      const emailInput = document.getElementById('user-email');
+      const email = emailInput ? emailInput.value.trim() : '';
+      
+      if (!email) {
+        alert('Por favor, ingresa tu email para continuar.');
+        return;
+      }
+      
+      // Validar formato de email básico
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        alert('Por favor, ingresa un email válido.');
+        return;
+      }
+      
+      // Procesar resultados con email y guardar en Firebase
+      try {
+        await procesarResultadosConEmail();
+        
+        // Calcular y mostrar resultados
+        const scores = calculateScores();
+        if (scores) {
+          displayResults(scores);
+        }
+      } catch (error) {
+        console.error("❌ Error al procesar resultados:", error);
+        alert("Error al procesar los resultados. Intenta nuevamente.");
+      }
+    });
+  }
+});
 
 // Devuelve la descripción del tipo (puedes personalizar)
 function obtenerDescripcionTipo(tipo) {
