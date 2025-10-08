@@ -360,10 +360,8 @@ setTimeout(() => {
           paginationControlsDiv.style.display = "block";
         }
         
-        // Scroll al quiz
-        if (quizContainer) {
-          quizContainer.scrollIntoView({ behavior: "smooth" });
-        }
+        // Scroll al principio de la página
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     }
   }
@@ -902,7 +900,29 @@ const typeColors = [
   "#ff6b6b", // Tipo 8 - Rojo coral
   "#a8edea", // Tipo 9 - Verde menta
 ];
-const typeLabels = Array.from({ length: numTypes }, (_, i) => `Tipo ${i + 1}`);
+const typeLabels = [
+  "El Perfeccionista", // Tipo 1
+  "El Ayudador", // Tipo 2
+  "El Triunfador", // Tipo 3
+  "El Individualista", // Tipo 4
+  "El Investigador", // Tipo 5
+  "El Leal", // Tipo 6
+  "El Entusiasta", // Tipo 7
+  "El Desafiador", // Tipo 8
+  "El Pacificador" // Tipo 9
+];
+
+const typeIcons = [
+  "⚖️", // Tipo 1 - Balanza (justicia)
+  "💖", // Tipo 2 - Corazón (ayuda)
+  "🏆", // Tipo 3 - Trofeo (triunfo)
+  "🎨", // Tipo 4 - Paleta (arte)
+  "🔍", // Tipo 5 - Lupa (investigación)
+  "🛡️", // Tipo 6 - Escudo (protección)
+  "🌈", // Tipo 7 - Arcoíris (entusiasmo)
+  "🔥", // Tipo 8 - Fuego (desafío)
+  "🌿" // Tipo 9 - Hoja (paz)
+];
 const grayColor = "#CCCCCC";
 
 let currentPage = 1;
@@ -911,7 +931,7 @@ let shuffledQuestions = [];
 let userResponses = [];
 
 // Modo de prueba - cambiar a false para test completo
-let modoPrueba = false; // Siempre usar test completo
+let modoPrueba = false; // Modo prueba desactivado
 const preguntasPrueba = 5; // Solo 5 preguntas para pruebas
 
 const prevBtn = document.createElement("button");
@@ -957,6 +977,9 @@ function initializeQuiz() {
     startTestContainer.style.display = "none";
   }
 
+  // Scroll al principio de la página
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
   // Configurar controles de paginación
   if (paginationControlsDiv) {
     paginationControlsDiv.innerHTML = "";
@@ -977,10 +1000,8 @@ function initializeQuiz() {
       currentPage--;
       renderCurrentPage();
       updatePaginationButtons();
-      // Scroll suave a la parte superior del quiz
-      setTimeout(() => {
-        quizContainer.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
+      // Scroll al principio de la página
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   });
 
@@ -1003,10 +1024,8 @@ function initializeQuiz() {
       currentPage++;
       renderCurrentPage();
       updatePaginationButtons();
-      // Scroll suave a la parte superior del quiz
-      setTimeout(() => {
-        quizContainer.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
+      // Scroll al principio de la página
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   });
 
@@ -1103,7 +1122,7 @@ function renderCurrentPage() {
       // Icono visual mejorado
       const icon = document.createElement("div");
       icon.className = "option-icon";
-      const icons = ["😐", "🙁", "😐", "🙂", "😃"];
+      const icons = ["😞", "🙁", "😐", "🙂", "😃"];
       icon.textContent = icons[value - 1];
       optionContent.appendChild(icon);
 
@@ -1112,11 +1131,7 @@ function renderCurrentPage() {
       number.textContent = value;
       optionContent.appendChild(number);
 
-      const text = document.createElement("div");
-      text.className = "option-text";
-      const texts = ["Nada", "Poco", "Regular", "Bastante", "Mucho"];
-      text.textContent = texts[value - 1];
-      optionContent.appendChild(text);
+      // Texto removido según solicitud del usuario
 
       label.appendChild(input);
       label.appendChild(optionContent);
@@ -1333,13 +1348,26 @@ function displayResults(scores) {
     const privacyElement = document.getElementById("privacy-note");
     
     if (modoPrueba) {
-      if (titleElement) titleElement.textContent = "Eneagrama - Para ver tus resultados de prueba";
+      if (titleElement) {
+        titleElement.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: center;">
+            <img src="media/icon_enea.png" alt="Eneagrama" style="width: 80px; height: 80px;">
+          </div>
+        `;
+      }
       if (descriptionElement) descriptionElement.textContent = "Ingresa tu email para ver el resultado de tu test de prueba (no se guardará en la base de datos).";
       if (privacyElement) {
         privacyElement.innerHTML = '<em>Modo prueba: Tu email no se guardará en la base de datos. Solo se usa para mostrar los resultados.</em>';
       }
     } else {
-      if (titleElement) titleElement.textContent = "Eneagrama - Para ver tus resultados";
+      if (titleElement) {
+        titleElement.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+            <img src="media/icon_enea.png" alt="Eneagrama" style="width: 40px; height: 40px;">
+            <span>Para ver tus resultados</span>
+          </div>
+        `;
+      }
       if (descriptionElement) descriptionElement.textContent = "Necesitamos tu email para enviarte un análisis personalizado de tu personalidad.";
       if (privacyElement) {
         privacyElement.innerHTML = '<em>Este test es personalizado para ti. Usamos tu correo solo para identificarte y mejorar tu experiencia. No compartimos tus datos.</em>';
@@ -1394,14 +1422,61 @@ async function procesarResultadosConEmail() {
   }, 1500);
 }
 
+// Función para obtener el tipo de integración (crecimiento)
+function getIntegrationType(type) {
+  const integrationMap = {
+    1: 7, 2: 4, 3: 6, 4: 1, 5: 8, 6: 9, 7: 5, 8: 2, 9: 3
+  };
+  return integrationMap[type] || type;
+}
+
+// Función para obtener el tipo de desintegración (estrés)
+function getDisintegrationType(type) {
+  const disintegrationMap = {
+    1: 4, 2: 8, 3: 9, 4: 2, 5: 7, 6: 3, 7: 1, 8: 5, 9: 6
+  };
+  return disintegrationMap[type] || type;
+}
+
+// Función para reiniciar el test
+function restartTest() {
+  if (confirm('¿Estás seguro de que quieres reiniciar el test? Perderás tus resultados actuales.')) {
+    window.location.reload();
+  }
+}
+
+// Función para compartir resultados
+function shareResults() {
+  const dominantType = window.calculatedScores ? window.calculatedScores.indexOf(Math.max(...window.calculatedScores)) + 1 : 1;
+  const typeNames = ['El Perfeccionista', 'El Ayudador', 'El Triunfador', 'El Individualista', 'El Investigador', 'El Leal', 'El Entusiasta', 'El Desafiador', 'El Pacificador'];
+  
+  const shareText = `¡Acabo de completar el test de Eneagrama! Mi tipo predominante es el Tipo ${dominantType} - ${typeNames[dominantType - 1]}. 🎯\n\nDescubre tu tipo en: ${window.location.href}`;
+  
+  if (navigator.share) {
+    navigator.share({
+      title: 'Mi Resultado del Test de Eneagrama',
+      text: shareText,
+      url: window.location.href
+    });
+  } else {
+    // Fallback para navegadores que no soportan Web Share API
+    navigator.clipboard.writeText(shareText).then(() => {
+      alert('¡Resultados copiados al portapapeles! Puedes compartirlos en tus redes sociales.');
+    }).catch(() => {
+      alert('Comparte este enlace: ' + window.location.href);
+    });
+  }
+}
+
 // Función para mostrar los resultados finales
 function mostrarResultadosFinales(scores) {
   if (!resultsTextDiv || !resultsContainer) return;
 
   const loadingSpinner = wrapper.querySelector("#loading-spinner");
-  loadingSpinner.style.display = "block";
+  loadingSpinner.style.display = "flex";
   resultsContainer.style.display = "none";
 
+  // Mostrar spinner por más tiempo para mejor UX
   setTimeout(() => {
     loadingSpinner.style.display = "none";
     resultsContainer.style.display = "block";
@@ -1410,40 +1485,88 @@ function mostrarResultadosFinales(scores) {
     const dominantTypeIndex = scores.indexOf(maxScore);
     const dominantType = dominantTypeIndex + 1;
 
-    // Mensaje diferente según el modo
-    const modoText = modoPrueba ? 
-      '<p style="color:#fa709a;font-weight:bold;margin-bottom:10px;font-size:0.9em;">🧪 Modo Prueba - Resultado de muestra</p>' : 
-      '';
+    // Mensaje removido según solicitud del usuario
+    
+    // Calcular el tipo secundario (wing)
+    const sortedScores = [...scores].map((score, index) => ({ score, index })).sort((a, b) => b.score - a.score);
+    const secondaryTypeIndex = sortedScores[1].index;
+    const secondaryType = secondaryTypeIndex + 1;
     
     resultsTextDiv.innerHTML = `
-      <div style="text-align: center; margin-bottom: 2rem;">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
-          <div class="eneagram-icon" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: var(--primary-gradient); border-radius: 50%; box-shadow: var(--shadow-lg);">
-            <svg class="eneagram-svg" width="40" height="40" viewBox="0 0 100 100" style="fill: white;">
-              <circle cx="50" cy="50" r="45" stroke="white" stroke-width="2" fill="none"/>
-              <circle cx="50" cy="20" r="8" fill="white"/>
-              <circle cx="20" cy="30" r="8" fill="white"/>
-              <circle cx="80" cy="30" r="8" fill="white"/>
-              <circle cx="30" cy="70" r="8" fill="white"/>
-              <circle cx="70" cy="70" r="8" fill="white"/>
-              <circle cx="50" cy="80" r="8" fill="white"/>
-              <line x1="50" y1="20" x2="20" y2="30" stroke="white" stroke-width="2"/>
-              <line x1="50" y1="20" x2="80" y2="30" stroke="white" stroke-width="2"/>
-              <line x1="20" y1="30" x2="30" y2="70" stroke="white" stroke-width="2"/>
-              <line x1="80" y1="30" x2="70" y2="70" stroke="white" stroke-width="2"/>
-              <line x1="30" y1="70" x2="50" y2="80" stroke="white" stroke-width="2"/>
-              <line x1="70" y1="70" x2="50" y2="80" stroke="white" stroke-width="2"/>
-            </svg>
-          </div>
-          <h1 class="results-title" style="font-size: 2.5rem; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0;">Eneagrama</h1>
+      <div class="results-header">
+        <div class="results-icon-container">
+          <img src="media/icon_enea.png" alt="Eneagrama" class="results-main-icon">
         </div>
-        <p class="results-subtitle" style="color: var(--text-secondary); font-size: 1.1rem;">Análisis de Personalidad</p>
+        <h1 class="results-main-title">Tu Análisis de Personalidad</h1>
+        <p class="results-subtitle">Descubre tu esencia y potencial de crecimiento</p>
       </div>
-      ${modoText}
-      <p class="dominant-type">Tu tipo de personalidad según el Eneagrama es: <strong>Tipo ${dominantType}</strong></p>
+      
+      <div class="dominant-result">
+        <div class="dominant-type-card" style="background: linear-gradient(135deg, ${typeColors[dominantTypeIndex]}20, ${typeColors[dominantTypeIndex]}10); border-left: 4px solid ${typeColors[dominantTypeIndex]};">
+          <div class="type-header">
+            <div class="type-icon" style="color: ${typeColors[dominantTypeIndex]};">${typeIcons[dominantTypeIndex]}</div>
+            <div class="type-info">
+              <div class="type-number" style="color: ${typeColors[dominantTypeIndex]};">Tipo ${dominantType} - ${typeLabels[dominantTypeIndex]}</div>
+              <div class="type-score" style="color: ${typeColors[dominantTypeIndex]};">${scores[dominantTypeIndex]} puntos</div>
+            </div>
+          </div>
+          <p class="dominant-description">Tu tipo de personalidad predominante según el Eneagrama</p>
+          ${scores[secondaryTypeIndex] > 0 ? `
+            <div class="wing-info">
+              <span class="wing-label">Influencia de Ala:</span>
+              <span class="wing-type" style="color: ${typeColors[secondaryTypeIndex]};">Tipo ${secondaryType} - ${typeLabels[secondaryTypeIndex]}</span>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+      
+      <div class="all-results-section">
+        <h3 class="section-title">Mapa Completo de Personalidad</h3>
+        <p class="section-description">Visualiza tus tendencias en los 9 tipos del Eneagrama</p>
+        <div class="results-grid">
+          ${scores.map((score, index) => `
+            <div class="result-item ${index === dominantTypeIndex ? 'dominant' : ''}" style="border-left: 3px solid ${typeColors[index]};">
+              <div class="result-header">
+                <span class="result-type" style="color: ${typeColors[index]};">${typeIcons[index]} Tipo ${index + 1} - ${typeLabels[index]}</span>
+                <span class="result-score" style="color: ${typeColors[index]};">${score}</span>
+              </div>
+              <div class="result-bar">
+                <div class="result-progress" style="width: ${(score / Math.max(...scores)) * 100}%; background: ${typeColors[index]};"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      
+      <div class="growth-section">
+        <h3 class="section-title">Rutas de Crecimiento Personal</h3>
+        <div class="growth-cards">
+          <div class="growth-card integration" style="border-left: 4px solid ${typeColors[dominantTypeIndex]};">
+            <h4 style="color: ${typeColors[dominantTypeIndex]};">🔄 Integración (Crecimiento)</h4>
+            <p>Cuando estás en tu mejor momento, tiendes hacia las cualidades del <strong>Tipo ${getIntegrationType(dominantType)} - ${typeLabels[getIntegrationType(dominantType) - 1]}</strong></p>
+          </div>
+          <div class="growth-card disintegration" style="border-left: 4px solid #ef4444;">
+            <h4 style="color: #ef4444;">⚠️ Desintegración (Estrés)</h4>
+            <p>En momentos de estrés, puedes mostrar características del <strong>Tipo ${getDisintegrationType(dominantType)} - ${typeLabels[getDisintegrationType(dominantType) - 1]}</strong></p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="cta-section">
+        <div class="cta-card">
+          <h3 class="cta-title">¿Quieres profundizar más?</h3>
+          <p class="cta-description">Este es solo un resultado de muestra. El test completo con 180 preguntas te dará un análisis más preciso y detallado de tu personalidad.</p>
+          <div class="cta-buttons">
+            <button class="cta-button primary" onclick="restartTest()">
+              <span>🔄 Hacer Test Completo</span>
+            </button>
+            <button class="cta-button secondary" onclick="shareResults()">
+              <span>📤 Compartir Resultados</span>
+            </button>
+          </div>
+        </div>
+      </div>
     `;
-
-    drawChart(scores, dominantTypeIndex);
 
     if (typeDescriptions && typeDescriptions.length > 0) {
       typeDescriptions.forEach((desc) => (desc.style.display = "none"));
@@ -1508,62 +1631,112 @@ function drawChart(scores, dominantTypeIndex) {
   const chartCtx = chartCanvas.getContext("2d");
   if (resultsChart) resultsChart.destroy();
 
-  let questionsPerType = 0;
-  if (shuffledQuestions.length > 0) {
-    questionsPerType = shuffledQuestions.filter((q) => q.type === 1).length;
-  }
-  const maxScorePerType = questionsPerType * 5;
+  // Crear colores con transparencia para mostrar todos los puntajes
+  const backgroundColors = typeColors.map((color, index) => {
+    if (scores[index] > 0) {
+      return color + '80'; // 50% de opacidad para tipos con puntaje
+    }
+    return color + '20'; // 12% de opacidad para tipos sin puntaje
+  });
 
-  // Crear array de colores donde solo el tipo dominante tiene color
-  const backgroundColors = Array(numTypes).fill(grayColor);
-  backgroundColors[dominantTypeIndex] = typeColors[dominantTypeIndex];
-
-  // Configuración del gráfico circular (PolarArea)
+  // Configuración del gráfico moderno 2025
   resultsChart = new Chart(chartCtx, {
-    type: "polarArea", // Tipo de gráfico circular
+    type: "polarArea",
     data: {
       labels: typeLabels,
       datasets: [
         {
-          label: "Resultado",
+          label: "Puntuación",
           data: scores,
           backgroundColor: backgroundColors,
-          borderColor: "#FFFFFF",
-          borderWidth: 1,
-          borderAlign: "center", // Alinea los bordes al centro para evitar sobreposiciones
+          borderColor: typeColors,
+          borderWidth: 2,
+          borderAlign: "center",
+          hoverBackgroundColor: typeColors,
+          hoverBorderColor: "#FFFFFF",
+          hoverBorderWidth: 3,
         },
       ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      scales: {
-        r: {
-          beginAtZero: true,
-          suggestedMax: maxScorePerType > 0 ? maxScorePerType : 100,
-          pointLabels: {
-            display: true,
-            centerPointLabels: true,
-            font: { size: 14, weight: "bold" },
-          },
-          ticks: {
-            display: false, // Oculta las marcas de escala para un aspecto más limpio
-          },
-          grid: {
-            circular: true, // Asegura que la cuadrícula sea circular
-          },
-        },
+      animation: {
+        animateRotate: true,
+        animateScale: true,
+        duration: 2000,
+        easing: 'easeInOutQuart'
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index'
       },
       plugins: {
         legend: {
-          display: false, // Ocultar la leyenda ya que solo mostramos el tipo dominante
+          display: false
         },
         tooltip: {
-          enabled: false, // Desactivar tooltips para no mostrar puntajes
-        },
+          enabled: true,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          titleColor: '#FFFFFF',
+          bodyColor: '#FFFFFF',
+          borderColor: 'rgba(255, 255, 255, 0.2)',
+          borderWidth: 1,
+          cornerRadius: 12,
+          padding: 12,
+          titleFont: {
+            size: 14,
+            weight: 'bold'
+          },
+          bodyFont: {
+            size: 13
+          },
+          callbacks: {
+            title: function(context) {
+              return context[0].label;
+            },
+            label: function(context) {
+              return `Puntuación: ${context.parsed} puntos`;
+            }
+          }
+        }
+      },
+      scales: {
+        r: {
+          beginAtZero: true,
+          suggestedMax: Math.max(...scores) * 1.2,
+          pointLabels: {
+            display: true,
+            centerPointLabels: true,
+            font: { 
+              size: 16, 
+              weight: "700",
+              family: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+            },
+            color: '#1f2937',
+            padding: 16
+          },
+          ticks: {
+            display: false
+          },
+          grid: {
+            circular: true,
+            color: 'rgba(0, 0, 0, 0.1)',
+            lineWidth: 2
+          },
+          angleLines: {
+            color: 'rgba(0, 0, 0, 0.1)',
+            lineWidth: 2
+          }
+        }
       },
       layout: {
-        padding: 20, // Añade espacio alrededor del gráfico
+        padding: {
+          top: 40,
+          bottom: 40,
+          left: 40,
+          right: 40
+        }
       },
       elements: {
         arc: {

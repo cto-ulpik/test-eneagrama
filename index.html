@@ -44,37 +44,34 @@
         <div id="start-test-container" class="hero-section">
           <div class="hero-content">
             <div class="eneagram-icon">
-              <svg viewBox="0 0 100 100" class="eneagram-svg">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2"/>
-                <circle cx="50" cy="50" r="3" fill="currentColor"/>
-                <line x1="50" y1="5" x2="50" y2="95" stroke="currentColor" stroke-width="1"/>
-                <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" stroke-width="1"/>
-                <line x1="20" y1="20" x2="80" y2="80" stroke="currentColor" stroke-width="1"/>
-                <line x1="80" y1="20" x2="20" y2="80" stroke="currentColor" stroke-width="1"/>
-                <circle cx="50" cy="10" r="4" fill="currentColor"/>
-                <circle cx="50" cy="90" r="4" fill="currentColor"/>
-                <circle cx="10" cy="50" r="4" fill="currentColor"/>
-                <circle cx="90" cy="50" r="4" fill="currentColor"/>
-                <circle cx="25" cy="25" r="4" fill="currentColor"/>
-                <circle cx="75" cy="75" r="4" fill="currentColor"/>
-                <circle cx="75" cy="25" r="4" fill="currentColor"/>
-                <circle cx="25" cy="75" r="4" fill="currentColor"/>
-              </svg>
+              <img src="media/icon_enea.png" alt="Eneagrama" class="eneagram-img">
             </div>
-            <h1 class="hero-title">Descubre tu Personalidad</h1>
+            <h1 class="hero-title">Descubre tu motivación</h1>
             <p class="hero-subtitle">Test de Eneagrama 2025</p>
             <p class="intro-text">
-              El Eneagrama es un sistema que describe nueve tipos de personalidad
-              distintos y sus interrelaciones. Este test te ayudará a descubrir tu
-              tipo de personalidad predominante según el Eneagrama.
+              El eneagrama es un sistema que te ayuda a conocer tus motivaciones mas profundas. Este es un test de autoconocimiento.
             </p>
             <div class="instructions">
-              <h3>Instrucciones:</h3>
+              <h3>Instrucciones</h3>
               <p>Responde cada pregunta usando la escala del 1 al 5:</p>
               <div class="scale-example">
-                <span class="scale-item">1 - Muy poco identificado</span>
-                <span class="scale-item">5 - Totalmente identificado</span>
+                <div class="scale-circle">
+                  <div class="scale-number">1</div>
+                  <div class="scale-label">
+                    <span>Nada</span>
+                    <span>identificado</span>
+                  </div>
+                </div>
+                <div class="scale-arrow">→</div>
+                <div class="scale-circle">
+                  <div class="scale-number">5</div>
+                  <div class="scale-label">
+                    <span>Muy</span>
+                    <span>identificado</span>
+                  </div>
+                </div>
               </div>
+              <p class="scale-instruction">Elige la opción que mejor describa tu respuesta.</p>
             </div>
             <!-- Modo de selección oculto - siempre usa test completo -->
             <div class="test-options" style="display: none;">
@@ -96,11 +93,18 @@
               </div>
             </div>
             
+            <div class="test-time-info">
+              <div class="time-badge">
+                <svg class="time-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12,6 12,12 16,14"/>
+                </svg>
+                <span>Tiempo aproximado: 30 min</span>
+              </div>
+            </div>
+            
             <button id="start-test-btn" class="cta-button">
-              <span>Empezar Test Completo</span>
-              <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
+              <span>Comenzar Test</span>
             </button>
           </div>
         </div>
@@ -192,42 +196,54 @@
 
           <button type="submit" id="submit-btn">Calcular Resultados</button>
         </form>
-        <div id="loading-spinner" style="display: none; text-align: center">
-          <p>Calculando resultados...</p>
-          <div
-            class="spinner"
-            style="
-              border: 4px solid #ccc;
-              border-top: 4px solid #3498db;
-              border-radius: 50%;
-              width: 30px;
-              height: 30px;
-              animation: spin 1s linear infinite;
-              margin: auto;
-            "
-          ></div>
+        <div id="loading-spinner" class="loading-overlay" style="display: none;">
+          <div class="loading-container">
+            <div class="loading-spinner">
+              <div class="spinner-ring"></div>
+              <div class="spinner-ring"></div>
+              <div class="spinner-ring"></div>
+            </div>
+            <h3 class="loading-title">Analizando tus respuestas</h3>
+            <p class="loading-message">Estamos calculando tu tipo de personalidad...</p>
+            <div class="loading-progress">
+              <div class="progress-bar"></div>
+            </div>
+          </div>
         </div>
         <div id="results-container" style="display: none">
-          <h2>Tus Resultados</h2>
+          
           <div id="results-text"></div>
-          <div id="results-chart-container">
-            <canvas id="results-chart"></canvas>
-          </div>
           <div id="type-descriptions" class="type-descriptions">
             <h3>Descripción de los Tipos</h3>
             <div class="type-description" id="type-1">
-              <h4>💎 Tipo 1 – El Perfeccionista</h4>
-              <p>
-                Eres una persona íntegra, ética y confiable. Tienes un fuerte
-                deseo de mejorar el mundo y hacerlo más justo. Tu disciplina y
-                sentido del deber te hacen destacar como alguien en quien
-                siempre se puede confiar. Inspiras con tu ejemplo y tu
-                compromiso con lo correcto. ¡Qué orgullo ser alguien que actúa
-                con tanta coherencia!
-              </p>
+              <h4 style="color: #667eea;">⚖️ Tipo 1 – El Perfeccionista</h4>
+              <div class="type-details">
+                <div class="type-motive">
+                  <strong>Motivación Principal:</strong> Ser bueno, íntegro y correcto
+                </div>
+                <div class="type-fear">
+                  <strong>Miedo Principal:</strong> Ser corrupto, defectuoso o malo
+                </div>
+                <p class="type-description-text">
+                  Eres una persona íntegra, ética y confiable. Tienes un fuerte
+                  deseo de mejorar el mundo y hacerlo más justo. Tu disciplina y
+                  sentido del deber te hacen destacar como alguien en quien
+                  siempre se puede confiar. Inspiras con tu ejemplo y tu
+                  compromiso con lo correcto.
+                </p>
+                <div class="type-strengths">
+                  <strong>Fortalezas:</strong> Integridad, responsabilidad, disciplina, sentido de justicia
+                </div>
+                <div class="type-challenges">
+                  <strong>Desafíos:</strong> Perfeccionismo excesivo, crítica hacia ti mismo y otros
+                </div>
+                <div class="type-growth">
+                  <strong>Crecimiento:</strong> Practica la autocompasión y acepta que la perfección no existe
+                </div>
+              </div>
             </div>
             <div class="type-description" id="type-2">
-              <h4>💖 Tipo 2 – El Ayudador</h4>
+              <h4 style="color: #f093fb;">💖 Tipo 2 – El Ayudador</h4>
               <p>
                 Eres una persona cálida, generosa y profundamente empática.
                 Siempre estás atento a las necesidades de los demás, dispuesto a
@@ -238,7 +254,7 @@
               </p>
             </div>
             <div class="type-description" id="type-3">
-              <h4>🏆 Tipo 3 – El Triunfador</h4>
+              <h4 style="color: #4facfe;">🏆 Tipo 3 – El Triunfador</h4>
               <p>
                 Eres una persona ambiciosa, determinada y llena de energía.
                 Tienes una habilidad natural para alcanzar tus metas y motivar a
@@ -249,7 +265,7 @@
               </p>
             </div>
             <div class="type-description" id="type-4">
-              <h4>🎨 Tipo 4 – El Individualista</h4>
+              <h4 style="color: #764ba2;">🎨 Tipo 4 – El Individualista</h4>
               <p>
                 Eres sensible, profundo y auténtico, con una conexión muy
                 especial con tus emociones. Tu forma de ver el mundo es única y
@@ -260,7 +276,7 @@
               </p>
             </div>
             <div class="type-description" id="type-5">
-              <h4>🔍 Tipo 5 – El Investigador</h4>
+              <h4 style="color: #43e97b;">🔍 Tipo 5 – El Investigador</h4>
               <p>
                 Eres una mente brillante, curiosa y observadora. Disfrutas
                 descubrir, entender y explorar el mundo desde la profundidad del
@@ -271,7 +287,7 @@
               </p>
             </div>
             <div class="type-description" id="type-6">
-              <h4>🛡️ Tipo 6 – El Leal</h4>
+              <h4 style="color: #fa709a;">🛡️ Tipo 6 – El Leal</h4>
               <p>
                 Eres confiable, protector y profundamente comprometido. Siempre
                 estás pensando en cómo cuidar a los tuyos y mantener la
@@ -282,7 +298,7 @@
               </p>
             </div>
             <div class="type-description" id="type-7">
-              <h4>🌈 Tipo 7 – El Entusiasta</h4>
+              <h4 style="color: #fee140;">🌈 Tipo 7 – El Entusiasta</h4>
               <p>
                 Eres alegría pura, creatividad en movimiento y amante de la
                 vida. Siempre estás buscando nuevas experiencias que te hagan
@@ -293,7 +309,7 @@
               </p>
             </div>
             <div class="type-description" id="type-8">
-              <h4>🔥 Tipo 8 – El Desafiador</h4>
+              <h4 style="color: #ff6b6b;">🔥 Tipo 8 – El Desafiador</h4>
               <p>
                 Eres fuerte, directo y valiente. Tienes un gran sentido de
                 justicia y no temes enfrentar lo que sea necesario para defender
@@ -303,7 +319,7 @@
               </p>
             </div>
             <div class="type-description" id="type-9">
-              <h4>🌿 Tipo 9 – El Pacificador</h4>
+              <h4 style="color: #a8edea;">🌿 Tipo 9 – El Pacificador</h4>
               <p>
                 Eres paz, armonía y equilibrio. Tienes el don de unir personas,
                 calmar tensiones y hacer que todos se sientan bienvenidos. Tu
@@ -319,7 +335,31 @@
         </div>
 
         <footer>
-          <p>© 2025 Test de Eneagrama - Todos los derechos reservados</p>
+          <div class="footer-content">
+            <p>© 2025 Test de Eneagrama · IK SAS BIC · Todos los derechos reservados.</p>
+            <div class="footer-logo">
+              <span class="developed-by">Desarrollado por</span>
+              <svg class="company-logo" viewBox="0 0 11.81 2.94" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <style>
+                    .cls-1 {
+                      fill: #667eea;
+                      stroke-width: 0px;
+                    }
+                  </style>
+                </defs>
+                <circle class="cls-1" cx="1.63" cy=".33" r=".33"></circle>
+                <circle class="cls-1" cx=".65" cy=".33" r=".33"></circle>
+                <circle class="cls-1" cx="2.61" cy=".33" r=".33"></circle>
+                <path class="cls-1" d="M3.22.94c-.02-.07-.08-.13-.16-.13h-.94c-.09,0-.16.07-.16.16v.98c0,.18-.15.33-.33.33s-.33-.15-.33-.33v-.98c0-.09-.07-.16-.16-.16H.2c-.08,0-.14.05-.16.13h0c-.03.12-.04.24-.04.36,0,.9.73,1.63,1.63,1.63s1.63-.73,1.63-1.63c0-.12-.01-.24-.04-.36"></path>
+                <path class="cls-1" d="M4.98.82h.68v1.63h-.68v-.12l.02-.17h0c-.11.22-.3.33-.55.33-.38,0-.61-.19-.61-.67V.82h.68v.94c0,.17.07.26.22.26.18,0,.26-.14.26-.31v-.88Z"></path>
+                <path class="cls-1" d="M5.94,2.45V.34h.68v2.1h-.68Z"></path>
+                <path class="cls-1" d="M8.75,1.6v.08c0,.53-.21.82-.64.82-.23,0-.43-.1-.53-.32h0v.18s.01.58.01.58h-.68V.82h.68v.26s0,0,0,0c.1-.21.31-.32.53-.32.44,0,.64.29.64.83ZM8.07,1.54c0-.16-.06-.3-.24-.3s-.25.12-.25.29v.2c0,.17.06.29.25.29s.24-.14.24-.31v-.17Z"></path>
+                <path class="cls-1" d="M8.93.41c0-.18.12-.26.38-.26s.38.08.38.26-.11.26-.38.26-.38-.08-.38-.26ZM8.97,2.45V.82h.68v1.63h-.68Z"></path>
+                <path class="cls-1" d="M9.93,2.45V.34h.68v1.02h.16l.24-.55h.74l-.4.79.46.85h-.76l-.28-.62h-.16v.62h-.68Z"></path>
+              </svg>
+            </div>
+          </div>
         </footer>
       </div>
     </div>
