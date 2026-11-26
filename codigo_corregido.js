@@ -1189,6 +1189,19 @@ function handleContactForm(event) {
     });
 }
 
+// Delegacion del envio del formulario de WhatsApp.
+// Antes se enganchaba con addEventListener sobre el formulario recien dibujado;
+// si el bloque de resultados se volvia a dibujar, el manejador se perdia, el boton
+// hacia submit nativo y la pagina se recargaba sin llegar a guardar el telefono.
+// Escuchando en document funciona siempre, se dibuje las veces que se dibuje.
+document.addEventListener('submit', function (event) {
+  const form = event.target;
+  if (form && form.id === 'contact-form') {
+    event.preventDefault();
+    handleContactForm(event);
+  }
+});
+
 // Función para mostrar mensajes del formulario
 function showFormMessage(message, type, persistent = false) {
   const formMessage = document.getElementById('form-message');
@@ -1417,11 +1430,8 @@ function mostrarResultadosFinales(scores) {
       );
     }
     
-    // Agregar event listener al formulario de contacto
-    const contactForm = document.getElementById('contact-form');
-    if (contactForm) {
-      contactForm.addEventListener('submit', handleContactForm);
-    }
+    // El formulario de contacto se maneja por delegacion (ver mas abajo),
+    // para que siga funcionando aunque el bloque de resultados se vuelva a dibujar.
 
     // Efecto de confetti mejorado
     confetti({
