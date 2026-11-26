@@ -963,6 +963,35 @@ function calculateScores() {
   return scores;
 }
 
+// --- Ala (tipo secundario) ---------------------------------------------
+// El ala SOLO puede ser uno de los dos tipos vecinos en el circulo del
+// eneagrama: el 1 tiene ala 9 o 2, el 3 tiene ala 2 o 4, el 9 tiene ala 8 o 1.
+// Antes se tomaba el segundo puntaje mas alto de cualquier tipo, y por eso
+// podia salir algo como "Tipo 3 ala 8", que no existe.
+function calcularAla(scores, tipoDominante) {
+  const vecinoIzq = tipoDominante === 1 ? 9 : tipoDominante - 1;
+  const vecinoDer = tipoDominante === 9 ? 1 : tipoDominante + 1;
+  const puntajeIzq = scores[vecinoIzq - 1];
+  const puntajeDer = scores[vecinoDer - 1];
+  return {
+    vecinoIzq: vecinoIzq,
+    vecinoDer: vecinoDer,
+    tipo: puntajeIzq >= puntajeDer ? vecinoIzq : vecinoDer,
+    puntaje: Math.max(puntajeIzq, puntajeDer),
+    empatada: puntajeIzq === puntajeDer
+  };
+}
+
+// --- Empate tecnico -----------------------------------------------------
+// Si dos o mas tipos comparten el puntaje mas alto, antes ganaba el numero
+// mas bajo en silencio. Ahora se detecta para poder avisarlo en pantalla.
+function detectarEmpate(scores) {
+  const maxScore = Math.max.apply(null, scores);
+  const tipos = [];
+  scores.forEach(function (s, i) { if (s === maxScore) tipos.push(i + 1); });
+  return { maxScore: maxScore, tipos: tipos, hayEmpate: tipos.length > 1 };
+}
+
 function displayResults(scores) {
   if (
     !resultsTextDiv ||
@@ -1259,7 +1288,10 @@ async function guardarEnEneagrama(email) {
       resultado: {
         descripcion: obtenerDescripcionTipo(dominantTypeIndex + 1),
         puntaje: maxScore,
-        tipo: (dominantTypeIndex + 1).toString()
+        tipo: (dominantTypeIndex + 1).toString(),
+        ala: calcularAla(scores, dominantTypeIndex + 1).tipo.toString(),
+        empate_tecnico: detectarEmpate(scores).hayEmpate,
+        tipos_empatados: detectarEmpate(scores).tipos
       },
       user_id: obtenerUid(),
       version_test: "v1.0"
@@ -1300,10 +1332,13 @@ function mostrarResultadosFinales(scores) {
 
     // Mensaje removido según solicitud del usuario
     
-    // Calcular el tipo secundario (wing)
-    const sortedScores = [...scores].map((score, index) => ({ score, index })).sort((a, b) => b.score - a.score);
-    const secondaryTypeIndex = sortedScores[1].index;
-    const secondaryType = secondaryTypeIndex + 1;
+    // Empate tecnico en el puntaje mas alto
+    const empate = detectarEmpate(scores);
+
+    // Ala: solo entre los dos vecinos del tipo dominante
+    const ala = calcularAla(scores, dominantType);
+    const secondaryType = ala.tipo;
+    const secondaryTypeIndex = secondaryType - 1;
     
     resultsTextDiv.innerHTML = `
       <div class="results-header">
@@ -1314,6 +1349,13 @@ function mostrarResultadosFinales(scores) {
         <p class="results-subtitle">Descubre tu esencia y potencial de crecimiento</p>
         </div>
       
+      ${empate.hayEmpate ? `
+        <div class="tie-notice">
+          <strong>Empate tecnico.</strong> Obtuviste el mismo puntaje (${empate.maxScore}) en los tipos ${empate.tipos.join(', ')}.
+          Abajo se muestra el Tipo ${dominantType}, pero conviene que leas tambien el otro: un empate suele significar que ambos te describen.
+        </div>
+      ` : ''}
+
       <div class="dominant-result">
         <div class="dominant-type-card" style="background: linear-gradient(135deg, ${typeColors[dominantTypeIndex]}20, ${typeColors[dominantTypeIndex]}10); border-left: 4px solid ${typeColors[dominantTypeIndex]};">
           <div class="type-header">
@@ -1329,6 +1371,7 @@ function mostrarResultadosFinales(scores) {
               <span class="wing-label">Tipo Secundario (Ala):</span>
               <span class="wing-type" style="color: ${typeColors[secondaryTypeIndex]};">Tipo ${secondaryType} - ${typeLabels[secondaryTypeIndex]}</span>
               <p class="wing-description">Este tipo complementa tu motivación principal y aporta características adicionales a tu forma de ser.</p>
+              ${ala.empatada ? `<p class="wing-tie">Tus dos alas posibles (Tipo ${ala.vecinoIzq} y Tipo ${ala.vecinoDer}) obtuvieron el mismo puntaje, asi que ambas te aplican por igual.</p>` : ''}
             </div>
           ` : ''}
         </div>
