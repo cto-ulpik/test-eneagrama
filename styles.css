@@ -2519,3 +2519,22 @@ label:focus-visible {
    Estaba incompleto: aclaraba el color del texto pero varias tarjetas
    conservaban fondo claro, y el texto quedaba ilegible en moviles con el
    sistema en oscuro. Se fuerza esquema claro con color-scheme en :root. */
+
+/* Aviso de empate tecnico entre tipos y entre alas */
+.tie-notice {
+  background: rgba(250, 112, 154, 0.08);
+  border-left: 4px solid var(--warning-color);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  margin: 0 0 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.wing-tie {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--text-muted);
+}
