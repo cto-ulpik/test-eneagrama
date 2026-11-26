@@ -1,5 +1,6 @@
 /* Variables CSS para tema moderno 2025 */
 :root {
+  color-scheme: light;
   --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
@@ -2513,23 +2514,7 @@ label:focus-visible {
   animation-name: fadeOutUp;
 }
 
-/* Modo oscuro (opcional) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text-primary: #f7fafc;
-    --text-secondary: #e2e8f0;
-    --text-muted: #a0aec0;
-    --text-light: #718096;
-    
-    --bg-primary: #1a202c;
-    --bg-secondary: #2d3748;
-    --bg-tertiary: #4a5568;
-    
-    --border-color: #4a5568;
-    --border-light: #2d3748;
-  }
-  
-  body {
-    background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #4a5568 100%);
-  }
-}
+/* Modo oscuro: desactivado a proposito.
+   Estaba incompleto: aclaraba el color del texto pero varias tarjetas
+   conservaban fondo claro, y el texto quedaba ilegible en moviles con el
+   sistema en oscuro. Se fuerza esquema claro con color-scheme en :root. */
