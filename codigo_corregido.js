@@ -18,52 +18,54 @@ const restartTestBtn = wrapper.querySelector("#restart-test-btn"); // Correcció
 const emailFormContainer = wrapper.querySelector("#email-form-container");
 let resultsChart = null;
 
-// Verificar conexión de Firebase al inicio
+// --- Sesion anonima -----------------------------------------------------
+// Firebase asigna un identificador (uid) al visitante sin pedirle ningun dato.
+// Ese uid se guarda como user_id en el documento, y es lo que permite que las
+// reglas de Firestore comprueben que cada persona solo accede a lo suyo.
+let authReady = null;
+
+function iniciarSesionAnonima() {
+  if (authReady) return authReady;
+  authReady = new Promise((resolve, reject) => {
+    if (typeof firebase === 'undefined' || !firebase.apps.length) {
+      reject(new Error('Firebase no esta inicializado'));
+      return;
+    }
+    const auth = firebase.auth();
+    auth.onAuthStateChanged((user) => {
+      if (user) resolve(user);
+    });
+    auth.signInAnonymously().catch(reject);
+  });
+  return authReady;
+}
+
+function obtenerUid() {
+  const user = (typeof firebase !== 'undefined' && firebase.auth) ? firebase.auth().currentUser : null;
+  return user ? user.uid : null;
+}
+
+// Verificar conexion de Firebase al inicio.
+// NOTA: ya no se lee ningun documento de la coleccion para "probar permisos".
 function verificarConexionFirebase() {
   try {
     if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
-      const db = firebase.firestore();
-      console.log("🔥 Firebase inicializado correctamente");
-      console.log("📊 Proyecto:", firebase.app().options.projectId);
-      console.log("✅ Conexión a Firestore establecida");
-      
-      // Verificar permisos con una operación de lectura en la colección eneagrama
-      db.collection('eneagrama').limit(1).get()
-        .then(() => {
-          console.log("✅ Permisos de lectura verificados en colección eneagrama");
-          console.log("🎉 Firebase completamente funcional");
-        })
-        .catch((error) => {
-          if (error.code === 'permission-denied') {
-            console.error("❌ ERROR: Permisos de Firestore insuficientes");
-            console.error("💡 Solución: Actualiza las reglas de Firestore para permitir escritura");
-            console.error("📋 Reglas recomendadas:");
-            console.error(`
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /eneagrama/{document} {
-      allow read, write: if true;
-    }
-  }
-}
-            `);
-      } else {
-            console.warn("⚠️ Advertencia de permisos:", error.message);
-          }
-        });
-        } else {
-      console.error("❌ Firebase no está inicializado");
+      console.log("Firebase inicializado correctamente");
+      console.log("Proyecto:", firebase.app().options.projectId);
+      iniciarSesionAnonima()
+        .then((user) => console.log("Sesion anonima iniciada:", user.uid))
+        .catch((error) => console.error("No se pudo iniciar sesion anonima:", error.message));
+    } else {
+      console.error("Firebase no esta inicializado");
     }
   } catch (error) {
-    console.error("❌ Error al verificar Firebase:", error);
+    console.error("Error al verificar Firebase:", error);
   }
 }
 
-// Ejecutar verificación al cargar la página
+// Ejecutar verificacion al cargar la pagina
 document.addEventListener('DOMContentLoaded', function() {
-  // Esperar un poco para que Firebase se inicialice completamente
-  setTimeout(verificarConexionFirebase, 1000);
+  setTimeout(verificarConexionFirebase, 300);
 });
 
 const numTypes = 9;
@@ -1128,48 +1130,22 @@ function handleContactForm(event) {
   contactButton.innerHTML = '<span>⏳ Enviando...</span>';
   contactButton.disabled = true;
   
-  // Actualizar documento existente en colección eneagrama
+  // Actualizar el documento creado en esta misma sesion, por su identificador.
+  // Ya NO se consulta la base por email: el cliente no necesita leer nada.
   const db = firebase.firestore();
-  
-  // Buscar el documento más reciente del usuario por email
-  const emailInput = document.getElementById('user-email');
-  const userEmail = emailInput ? emailInput.value : '';
-  
-  if (!userEmail) {
-    showFormMessage('Error: No se encontró el email del usuario', 'error');
-    contactButton.innerHTML = '<span>📱 Enviar WhatsApp</span>';
+  const docId = window.__eneagramaDocId;
+
+  if (!docId) {
+    showFormMessage('Error: no se encontro el registro de tu test', 'error');
+    contactButton.innerHTML = '<span>Enviar WhatsApp</span>';
     contactButton.disabled = false;
     return;
   }
-  
-  // Buscar el documento más reciente del usuario
-  db.collection('eneagrama')
-    .where('email', '==', userEmail)
-    .orderBy('fecha_creacion', 'desc')
-    .limit(1)
-    .get()
-    .then((querySnapshot) => {
-      if (querySnapshot.empty) {
-        throw new Error('No se encontró el documento del usuario');
-      }
-      
-      // Obtener el documento más reciente
-      const doc = querySnapshot.docs[0];
-      
-      // Actualizar el documento agregando el campo movil
-      return doc.ref.update({
-        movil: fullPhoneNumber,
-        fecha_actualizacion: new Date().toLocaleString('es-ES', {
-          timeZone: 'America/Guayaquil',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: true
-        })
-      });
+
+  db.collection('eneagrama').doc(docId)
+    .update({
+      movil: fullPhoneNumber,
+      fecha_actualizacion: firebase.firestore.FieldValue.serverTimestamp()
     })
     .then(() => {
       console.log('✅ Número de WhatsApp actualizado en documento eneagrama');
@@ -1240,9 +1216,11 @@ function convertirRespuestasAFormatoJSON() {
 // Función para guardar en la colección eneagrama
 async function guardarEnEneagrama(email) {
   try {
-    console.log("🔗 Conectando a Firebase...");
+    console.log("Conectando a Firebase...");
+    // Asegura que haya sesion anonima antes de escribir: las reglas la exigen
+    await iniciarSesionAnonima();
     const db = firebase.firestore();
-    console.log("✅ Conexión a Firebase establecida");
+    console.log("Conexion a Firebase establecida");
     
     // Convertir respuestas al formato p1, p2, etc.
     const respuestasJSON = convertirRespuestasAFormatoJSON();
@@ -1252,60 +1230,40 @@ async function guardarEnEneagrama(email) {
     const maxScore = Math.max(...scores);
     const dominantTypeIndex = scores.indexOf(maxScore);
     
+    // Consentimientos reales, tal como los marco la persona
+    const consentimientoCheckbox = document.getElementById('consentimiento-checkbox');
+    const promocionesCheckbox = document.getElementById('promociones-checkbox');
+    const consentimientoDatos = !!(consentimientoCheckbox && consentimientoCheckbox.checked);
+    const aceptaPromociones = !!(promocionesCheckbox && promocionesCheckbox.checked);
+
     // Crear documento con la estructura completa
     const documentoEneagrama = {
-      consentimiento: true,
+      consentimiento: consentimientoDatos,
+      promociones: aceptaPromociones,
       email: email,
-      fecha_creacion: new Date().toLocaleString('es-ES', {
-        timeZone: 'America/Guayaquil',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-      }),
+      fecha_creacion: firebase.firestore.FieldValue.serverTimestamp(),
       respuestas: respuestasJSON,
       resultado: {
         descripcion: obtenerDescripcionTipo(dominantTypeIndex + 1),
         puntaje: maxScore,
         tipo: (dominantTypeIndex + 1).toString()
       },
-      user_id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      user_id: obtenerUid(),
       version_test: "v1.0"
     };
     
     console.log("📊 Documento a guardar:", documentoEneagrama);
     
     // Guardar en la colección eneagrama
-    await db.collection('eneagrama').add(documentoEneagrama);
-    
-    console.log('✅ Documento guardado en colección eneagrama');
+    const docRef = await db.collection('eneagrama').add(documentoEneagrama);
+    // Guardamos el identificador del documento para actualizarlo despues
+    // (el movil) sin tener que consultar la base por email.
+    window.__eneagramaDocId = docRef.id;
+
+    console.log('Documento guardado en coleccion eneagrama:', docRef.id);
     return true;
   } catch (error) {
     console.error('❌ Error al guardar en eneagrama:', error);
-    throw error;
-  }
-}
-
-// Función para actualizar resultado en Firestore
-async function actualizarResultadoFirestore(resultado) {
-  try {
-    const db = firebase.firestore();
-    
-    const resultadoData = {
-      ...resultado,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-      scores: window.calculatedScores || []
-    };
-    
-    await db.collection('test_resultados').add(resultadoData);
-    console.log('✅ Resultado guardado en Firestore');
-  } catch (error) {
-    console.error('❌ Error al guardar resultado:', error);
     throw error;
   }
 }
@@ -1919,6 +1877,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
       
+      // El consentimiento de datos es obligatorio (las reglas de Firestore
+      // tambien lo exigen, aqui lo avisamos antes para no perder el envio)
+      const consentimientoCheckbox = document.getElementById('consentimiento-checkbox');
+      if (!consentimientoCheckbox || !consentimientoCheckbox.checked) {
+        alert('Para continuar debes aceptar los terminos y el uso de tus datos.');
+        return;
+      }
+
       // Procesar resultados con email y guardar en Firebase
       try {
         await procesarResultadosConEmail();
